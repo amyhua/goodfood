@@ -36,6 +36,7 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 | Phase | Linear | State | Summary |
 |-------|--------|-------|---------|
+| 5 — Solver service | [GOO-21](https://linear.app/goodfoodapp/issue/GOO-21) | Done | FastAPI + OR-Tools CP-SAT /solve, strict+diagnostic, locks/bans/seed, OpenAPI->TS client |
 | 4 — Proof engine | [GOO-20](https://linear.app/goodfoodapp/issue/GOO-20) | Done | Pure-TS nutrient calc, meal/day/week aggregation, honest status vs modes/tolerance, contributors, proof shape |
 | 3 — USDA ingestion | [GOO-18](https://linear.app/goodfoodapp/issue/GOO-18) | Done | Typed FDC client (retry/cache/timeout), normalizer, idempotent import, /api/foods/*, 100-food live catalog |
 | 2 — Nutrition & plan schema | [GOO-17](https://linear.app/goodfoodapp/issue/GOO-17) | Done | 21-model Prisma schema + CHECK invariants, seed, domain catalog/validation, DB integration tests |
@@ -45,6 +46,23 @@ Every requested user-facing feature from the phase queue appears above and is tr
 ## Phase log
 
 <!-- Prepend each completed phase using the template below. -->
+
+### Prompt 5 — Optimization solver service — GOO-21 — 2026-07-03
+**Changed:** services/solver (app/models.py Pydantic contract, app/solver.py CP-SAT strict+diagnostic,
+app/main.py /solve, requirements +ortools==9.15.6755, tests/test_solve.py, README); packages/api-client
+(openapi.json, generated src/solver-schema.ts, typed solve() + contract types, solve test, gen:solver
+script); packages/config eslint ignore for generated schema.
+**Migrations:** none.
+**Tests run:** lint OK; typecheck 9/9; pnpm test OK (5 pkgs, +api-client solve); pnpm build OK; solver
+pytest 10 passed (valid one-day plan w/ 3 meal groups + increment-aligned portions; impossible
+vegan+no-B12 => diagnostics identifying vitamin_b12; banned never selected; same seed deterministic;
+locked food remains; timeout != infeasible; diagnostic mode). Live HTTP /solve => OPTIMAL, energy hit
+target 600, protein 50.5 >= 50.
+**Remaining gaps:** solver treats MISSING as 0 for its own feasibility math (TS remains canonical
+honest proof); candidate selection + web wiring land in Prompt 6.
+**Migration notes:** none. Regenerate the TS client after any contract change (see solver README).
+Solver holds no DB/secrets. Local venv on python3.9 (brew 3.12 pip broken); Docker/CI use 3.12.
+**Manual QA:** `pnpm solver:dev` then POST /solve (see README).
 
 ### Prompt 4 — Nutrient calculation & proof engine — GOO-20 — 2026-07-03
 **Changed:** packages/domain: proof.ts (aggregate/status/contributors/proof shape), portion.ts

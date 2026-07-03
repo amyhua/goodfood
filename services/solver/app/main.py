@@ -9,6 +9,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from . import __version__
+from .models import SolveRequest, SolveResponse
+from .solver import solve as run_solve
 
 app = FastAPI(title="goodfood-solver", version=__version__)
 
@@ -29,3 +31,9 @@ def health() -> Health:
 def ready() -> Health:
     """Readiness probe (no external deps yet)."""
     return Health(status="ok", service="solver", version=__version__)
+
+
+@app.post("/solve", response_model=SolveResponse)
+def solve_endpoint(req: SolveRequest) -> SolveResponse:
+    """Optimize a meal plan (selections only; TypeScript computes the canonical proof)."""
+    return run_solve(req)

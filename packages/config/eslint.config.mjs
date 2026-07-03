@@ -15,6 +15,7 @@ export default tseslint.config(
       "**/test-results/**",
       "**/*.config.*",
       "**/next-env.d.ts",
+      "**/solver-schema.ts",
     ],
   },
   js.configs.recommended,
