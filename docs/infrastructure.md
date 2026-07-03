@@ -55,10 +55,29 @@ Host ids: test `ep-patient-union-atl4a2xd` (+ `-pooler`), production `ep-mute-tr
 | Neon account + branches (`test`, `production`) | ✅ done | connection verified — PostgreSQL 18.4, db `neondb`, pooled + direct both reachable |
 | `DATABASE_URL` / `DIRECT_URL` (test) in local `.env` | ✅ done | pooled = runtime, direct = migrations |
 | Vercel project | ✅ imported | id `prj_erhiVTB5CmbDihbqT6pgnjxnV6tG`, domain `goodfood-silk-seven.vercel.app` (not deployed yet — nothing to build until scaffold) |
-| USDA FDC API key | ⚠️ pending | using `DEMO_KEY` placeholder (30 req/hr). Real key needed — the "Account ID" provided is **not** the api.data.gov key |
-| Cloud/Vercel secret propagation | ⏳ todo | add the same vars to claude.ai/code env secrets + Vercel env vars |
+| USDA FDC API key | ✅ done | real api.data.gov key in `.env`; **verified live** (search returned 20,607 hits) |
+| Cloud/Vercel secret propagation | ⏳ in progress | claude.ai/code env secrets + Vercel env vars — see "Secret propagation" below |
 | Prisma schema + first migration | ⏳ todo | scaffold phase |
 | Solver host · Supabase | 💤 deferred | decided when their phases land |
+
+## Secret propagation
+
+Same secrets, three homes. Values come from `.env` (never commit them here).
+
+**claude.ai/code (cloud agent runs)** — set as environment variables/secrets on the goodfood
+environment. Cloud runs use the **`test`** Neon branch (same as local):
+`LINEAR_API_KEY`, `LINEAR_TEAM_ID`, `LINEAR_TEAM_KEY`, `DATABASE_URL` (test pooled),
+`DIRECT_URL` (test direct), `FDC_API_KEY`.
+
+**Vercel (deploys)** — set in Project → Settings → Environment Variables. The app runtime does **not**
+need the Linear vars. Use the **`production`** Neon branch for Production scope; the **`test`** branch
+for Preview/Development scope:
+
+| Variable | Production scope | Preview/Dev scope |
+|----------|------------------|-------------------|
+| `DATABASE_URL` | production **pooled** | test **pooled** |
+| `DIRECT_URL` | production **direct** | test **direct** |
+| `FDC_API_KEY` | (real key) | (real key) |
 
 ## Loading `.env` in scripts (gotcha)
 
