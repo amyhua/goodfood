@@ -48,6 +48,15 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F4 (optional) — Landing page — GOO-27 — 2026-07-03
+**Changed:** rewrote `/` into a marketing landing — hero + CTAs (planner needs no account / free
+signup), feature grid (proof, absolute exclusions, pantry/shopping, save+share), a "Free, and open
+source" section linking github.com/amyhua/goodfood, semantic landmarks + ≥44px targets, page metadata
+(title/description/OpenGraph/Twitter/canonical). E2E asserts the pitch, OSS heading, and GitHub link.
+**Tests run:** lint OK; typecheck 9/9; build OK; Playwright 30 passed.
+**Remaining gaps:** app-wide sitemap/robots/structured-data is F7.
+**Manual QA:** open / on a phone — hero + features + GitHub link, no overflow.
+
 ### Prompt F3 — Social sharing with per-platform optimization — GOO-26 — 2026-07-03
 **Queue:** goodfood-followups ([GOO-23](https://linear.app/goodfoodapp/issue/GOO-23)).
 **Changed:** schema — `ShareKind` enum + `Share` model (slug, kind, owner, mealPlan/list FKs,
