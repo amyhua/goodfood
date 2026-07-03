@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DiscordLink } from "@/components/DiscordLink";
 import { JsonLd } from "@/components/JsonLd";
 import { appBaseUrl } from "@/lib/app-url";
 
@@ -153,6 +154,7 @@ export default function LandingPage() {
         <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-brand-600">
           GitHub
         </a>
+        <DiscordLink />
         <Link href="/health" className="hover:text-brand-600">
           Status
         </Link>

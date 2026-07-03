@@ -4,6 +4,7 @@ import { z } from "zod";
 import { AuthError } from "@/server/auth/service";
 import { duplicatePlan } from "@/server/plans/duplicate";
 import { assertOwnsPlan } from "@/server/plans/ownership";
+import { postToDiscord } from "@/lib/discord";
 import { assertUnderLimit, BOARD_LIMITS, ONE_HOUR_MS } from "./rate-limit";
 
 export const DIET_PRESETS = [
@@ -32,7 +33,7 @@ export async function publishPost(userId: string, input: unknown) {
     where: { authorId: userId, createdAt: { gte: new Date(Date.now() - ONE_HOUR_MS) } },
   });
   assertUnderLimit(recent, BOARD_LIMITS.postsPerHour, "posts");
-  return prisma.boardPost.create({
+  const post = await prisma.boardPost.create({
     data: {
       authorId: userId,
       mealPlanId: data.mealPlanId,
@@ -40,7 +41,15 @@ export async function publishPost(userId: string, input: unknown) {
       description: data.description,
       dietTags: data.dietTags,
     },
+    include: { author: { select: { name: true, email: true } } },
   });
+  // Best-effort Discord cross-post (F9) — no-op unless DISCORD_WEBHOOK_URL is set; never blocks publish.
+  await postToDiscord({
+    title: post.title,
+    author: post.author.name ?? post.author.email.split("@")[0] ?? "a member",
+    dietTags: post.dietTags,
+  }).catch(() => undefined);
+  return post;
 }
 
 export interface FeedItem {

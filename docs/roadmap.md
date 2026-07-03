@@ -48,6 +48,21 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F9 (optional) — Discord community — GOO-32 — 2026-07-03
+**Changed:** docs/community/discord-blueprint.md (channels, roles, rules, onboarding, owner steps).
+lib/discord.ts — buildBoardAnnouncement (pure), isDiscordConfigured, best-effort postToDiscord;
+wired into board publishPost as a non-blocking cross-post (fires only when DISCORD_WEBHOOK_URL set,
+never breaks publish). DiscordLink component surfaced on landing footer + board header, rendered only
+when NEXT_PUBLIC_DISCORD_URL is set. .env.example entries (both blank/optional).
+**Tests run:** lint OK; typecheck 9/9; unit 36 passed (+3 discord: builder, tag omission, disabled
+no-op); build OK. Playwright unaffected (link hidden when unconfigured).
+**Remaining gaps:** webhook-only (no gateway bot / slash commands); role-sync manual.
+**Owner steps (need the owner's Discord account):** create server + apply layout, make an invite →
+NEXT_PUBLIC_DISCORD_URL, create #announcements webhook → DISCORD_WEBHOOK_URL, enable Community +
+screening. Logged in the blueprint.
+**Manual QA:** set NEXT_PUBLIC_DISCORD_URL → link appears; set DISCORD_WEBHOOK_URL → publishing a
+board plan posts to the channel.
+
 ### Prompt F8 (optional) — Social activity board — GOO-31 — 2026-07-03
 **Changed:** schema — BoardPost (author, plan, title, description, DietaryPreset[] tags, removedAt
 takedown) + BoardLike/BoardSave/BoardReport (migration `20260703144004_f8_board`, additive, deployed
