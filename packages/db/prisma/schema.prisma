@@ -29,6 +29,22 @@ enum ShareKind {
   LIST
 }
 
+/// Account role (F12). Practitioner roles are set only after manual verification.
+enum UserRole {
+  MEMBER
+  NUTRITIONIST
+  DIETITIAN
+  DOCTOR
+  COACH
+}
+
+/// Manual verification state of a practitioner application (F12).
+enum PractitionerStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 /// Data-quality state of a stored nutrient value (product-spec §4). MISSING != zero.
 enum DataQuality {
   KNOWN
@@ -146,6 +162,8 @@ model User {
   premiumUntil         DateTime?
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?
+  /// Account role (F12). MEMBER by default; a practitioner role is set only on verification.
+  role                 UserRole  @default(MEMBER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -163,8 +181,27 @@ model User {
   boardLikes             BoardLike[]
   boardSaves             BoardSave[]
   boardReports           BoardReport[]
+  practitionerProfile    PractitionerProfile?
 
   @@index([isDemo])
+}
+
+/// A practitioner's application + verification record (F12). One per user. status VERIFIED +
+/// User.role set together on approval; the verified badge derives from status == VERIFIED.
+model PractitionerProfile {
+  id          String             @id @default(cuid())
+  userId      String             @unique
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        UserRole // the professional role being claimed (e.g. DIETITIAN)
+  roleTitle   String // human label, e.g. "Registered Dietitian"
+  credentials String // license/registration details for manual review
+  bio         String
+  status      PractitionerStatus @default(PENDING)
+  verifiedAt  DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([status])
 }
 
 /// Singleton runtime app settings (F10). One row (id = "singleton") holds a JSON blob of

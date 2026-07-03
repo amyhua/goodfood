@@ -15,6 +15,7 @@ interface FeedItem {
   saveCount: number;
   likedByMe: boolean;
   savedByMe: boolean;
+  authorBadge: string | null;
 }
 
 const DIETS = ["VEGAN", "VEGETARIAN", "PESCATARIAN", "NONDAIRY", "PALEO", "KETO", "WHOLE_FOODS"];
@@ -103,7 +104,14 @@ export function BoardFeed() {
           <li key={p.id} className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="font-semibold">{p.title}</h2>
-              <span className="text-xs text-neutral-500">by {p.author}</span>
+              <span className="flex items-center gap-1 text-xs text-neutral-500">
+                by {p.author}
+                {p.authorBadge && (
+                  <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-medium text-brand-700" title="Verified practitioner">
+                    ✓ {p.authorBadge}
+                  </span>
+                )}
+              </span>
             </div>
             <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{p.description}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">

@@ -48,6 +48,25 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F12 (optional) — Practitioner content & partnerships — GOO-35 — 2026-07-03
+**Changed:** schema — UserRole + PractitionerStatus enums, User.role, PractitionerProfile (migration
+`20260703145617_f12_practitioners`, deployed no-reset). server/practitioners — applyPractitioner
+(PENDING, blocked when VERIFIED), decidePractitioner (VERIFIED sets User.role + verifiedAt; REJECTED
+resets MEMBER), listPendingApplications, listVerifiedPractitioners. Board listFeed now returns
+authorBadge (verified roleTitle). API /api/practitioners (verified list), /api/practitioners/apply,
+/api/admin/practitioners (GET pending + PUT decide, ADMIN_EMAILS-gated). UI: /practitioners browse,
+/practitioners/apply form, verified badge on board cards, /admin/practitioners review. Practitioners
+publish/share via the board (F8) + share pages (F3).
+**Migrations:** `20260703145617_f12_practitioners`. Applied to Neon.
+**Tests run:** lint OK; typecheck 9/9; unit 44 passed; build OK (practitioner + admin routes);
+Playwright 45. RUN_DB_INTEGRATION practitioners 1 passed (apply→verify sets role + board badge, only
+verified listed, reject resets role).
+**Remaining gaps:** verification is manual only (no credential API); badge is trust-only + shows a
+"not medical advice" note; no dedicated per-practitioner public profile page (browse + board suffice).
+**Migration notes:** admin review needs ADMIN_EMAILS set. `prisma migrate deploy`.
+**Manual QA:** /practitioners/apply → submit; as admin at /admin/practitioners → Verify → the author's
+board posts show ✓ badge and they appear on /practitioners.
+
 ### Prompt F11 (optional) — Android app (Expo parity) — GOO-34 — 2026-07-03
 **Changed:** apps/mobile — app.json android block (package app.goodfood.mobile, versionCode,
 edgeToEdgeEnabled, adaptive-icon bg, INTERNET permission), eas.json android profiles (apk for

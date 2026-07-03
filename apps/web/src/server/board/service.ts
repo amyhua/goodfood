@@ -65,6 +65,8 @@ export interface FeedItem {
   likedByMe: boolean;
   savedByMe: boolean;
   createdAt: string;
+  /** F12 — verified-practitioner badge for the author, else null. */
+  authorBadge: string | null;
 }
 
 /** The public feed: only live posts (removedAt null), newest first, optional diet filter. */
@@ -75,7 +77,13 @@ export async function listFeed(opts: { diet?: Diet; viewerId?: string }): Promis
     orderBy: { createdAt: "desc" },
     take: 100,
     include: {
-      author: { select: { name: true, email: true } },
+      author: {
+        select: {
+          name: true,
+          email: true,
+          practitionerProfile: { select: { status: true, roleTitle: true } },
+        },
+      },
       mealPlan: { select: { name: true, durationDays: true } },
       _count: { select: { likes: true, saves: true } },
       likes: { where: { userId: viewer }, select: { id: true } },
@@ -95,6 +103,10 @@ export async function listFeed(opts: { diet?: Diet; viewerId?: string }): Promis
     likedByMe: p.likes.length > 0,
     savedByMe: p.saves.length > 0,
     createdAt: p.createdAt.toISOString(),
+    authorBadge:
+      p.author.practitionerProfile?.status === "VERIFIED"
+        ? p.author.practitionerProfile.roleTitle
+        : null,
   }));
 }
 
