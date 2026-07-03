@@ -227,6 +227,39 @@ export function aggregateShopping(plan: PlanView): ShoppingItem[] {
   );
 }
 
+// --------------------------- share highlights ---------------------------
+
+export interface PlanHighlights {
+  metCount: number;
+  activeCount: number;
+  energyText: string;
+  summary: string;
+}
+
+/** Honest one-line highlight for share cards/OG images. Only MET counts as met; missing
+ *  data never inflates the number (invariant 4). */
+export function planHighlights(plan: PlanView): PlanHighlights {
+  const active = plan.proof.filter((r) => r.mode !== "DISABLED");
+  const metCount = active.filter((r) => r.status === "MET").length;
+  const energy = plan.proof.find((r) => r.nutrientKey === "energy");
+  const energyText = energy && energy.consumed != null ? `${Math.round(energy.consumed)} kcal` : "energy n/a";
+  return {
+    metCount,
+    activeCount: active.length,
+    energyText,
+    summary: `${metCount}/${active.length} nutrient targets met · ${energyText}`,
+  };
+}
+
+export function listHighlights(items: ShoppingItem[]): { itemCount: number; categoryCount: number; summary: string } {
+  const categoryCount = new Set(items.map((i) => i.category)).size;
+  return {
+    itemCount: items.length,
+    categoryCount,
+    summary: `${items.length} items · ${categoryCount} categories`,
+  };
+}
+
 // --------------------------- real plan ---------------------------
 
 /** Structural shape of `serializePlan(...)` output (kept pure — no server-only import). */

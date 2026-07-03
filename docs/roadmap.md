@@ -48,6 +48,31 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F3 — Social sharing with per-platform optimization — GOO-26 — 2026-07-03
+**Queue:** goodfood-followups ([GOO-23](https://linear.app/goodfoodapp/issue/GOO-23)).
+**Changed:** schema — `ShareKind` enum + `Share` model (slug, kind, owner, mealPlan/list FKs,
+revokedAt) with back-relations (migration `20260703141805_f3_shares`, additive, deployed no-reset).
+apps/web/src/server/shares — service (createShare owner-gated + idempotent, revokeShare,
+resolveShareBySlug returns null for missing/revoked), render loader. lib/share-text (pure per-platform
+intents: X, LinkedIn, email subject+message, Instagram caption, copy) + lib/app-url. Routes
+POST /api/shares + DELETE /api/shares/[slug]. Public `/s/[slug]` read-only page with generateMetadata
+(title/description/canonical/OpenGraph/Twitter Card) + dynamic `opengraph-image` (next/og, generated
+text/vector — no unlicensed imagery). plan/list highlights are honest (only MET counts; missing≠0).
+UI: ShareSheet (Copy Link/X/LinkedIn/Email/Instagram copy-caption+download/Revoke) wired into
+/plans for both plans and saved lists.
+**Migrations:** `20260703141805_f3_shares`. Applied to Neon.
+**Tests run:** lint OK; typecheck 9/9; unit 31 passed (+6 share-text); build OK (/s/[slug],
+opengraph-image, /api/shares[/slug]); Playwright 30 passed. RUN_DB_INTEGRATION=1 shares.integration
+2 passed (owner-gated + idempotent + resolvable + revocable; list share). Live HTTP: create→slug+url,
+/s/slug 200 with correct <title>/canonical/og:title/twitter:card + og:image, opengraph-image 200
+image/png (138 KB), revoke→ok, page after revoke→404 (privacy enforced).
+**Remaining gaps:** app-wide SEO/sitemap/robots hardening is F7; social activity board is F8; share is
+per-item (no bulk). Slug is unguessable (128-bit) but a live share URL is world-readable by design.
+**Migration notes:** set NEXT_PUBLIC_APP_URL to the deployed origin for correct canonical/share URLs
+(falls back to http://localhost:3000). Run `prisma migrate deploy` on deploy.
+**Manual QA:** /plans → Share on a plan → Copy Link / open X / Instagram copy-caption + download image;
+open the /s/<slug> URL in a fresh browser; Revoke and confirm it 404s.
+
 ### Prompt F2 — User auth and signups with per-user saved content — GOO-25 — 2026-07-03
 **Queue:** goodfood-followups ([GOO-23](https://linear.app/goodfoodapp/issue/GOO-23)).
 **Auth approach:** dependency-light credentials (scrypt via node:crypto — no native dep) + DB-backed

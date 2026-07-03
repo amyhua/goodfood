@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { ShareSheet } from "@/components/ShareSheet";
 
 interface PlanRow {
   id: string;
@@ -107,6 +108,7 @@ export function MyPlans() {
                 <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800">
                   {p.status.toLowerCase()} · {p.durationDays}d
                 </span>
+                <ShareSheet kind="PLAN" id={p.id} title={p.name} summary={`${p.durationDays}-day meal plan`} />
                 <button onClick={() => renamePlan(p.id, p.name)} className="min-h-9 rounded px-2 text-sm text-brand-600 hover:bg-brand-50">
                   Rename
                 </button>
@@ -131,6 +133,7 @@ export function MyPlans() {
                 className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-200 px-4 py-3 dark:border-neutral-800"
               >
                 <span className="min-w-0 flex-1 truncate font-medium">{l.name}</span>
+                <ShareSheet kind="LIST" id={l.id} title={l.name} summary="Shopping list" />
                 <button onClick={() => renameList(l.id, l.name)} className="min-h-9 rounded px-2 text-sm text-brand-600 hover:bg-brand-50">
                   Rename
                 </button>

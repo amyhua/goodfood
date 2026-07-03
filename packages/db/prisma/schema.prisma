@@ -23,6 +23,12 @@ enum FoodSource {
   USER
 }
 
+/// What a public Share points at (F3).
+enum ShareKind {
+  PLAN
+  LIST
+}
+
 /// Data-quality state of a stored nutrient value (product-spec §4). MISSING != zero.
 enum DataQuality {
   KNOWN
@@ -148,6 +154,7 @@ model User {
   ownedFoods             Food[]                  @relation("UserOwnedFoods")
   sessions               Session[]
   savedShoppingLists     SavedShoppingList[]
+  shares                 Share[]
 
   @@index([isDemo])
 }
@@ -417,6 +424,7 @@ model MealPlan {
   revisions          PlanRevision[]
   solverRuns         SolverRun[]
   savedShoppingLists SavedShoppingList[]
+  shares             Share[]
 
   @@index([userId])
   @@index([status])
@@ -435,8 +443,31 @@ model SavedShoppingList {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  shares Share[]
+
   @@index([userId])
   @@index([mealPlanId])
+}
+
+/// An explicit, revocable public share of one plan or list (F3). `slug` is an unguessable
+/// public token; a share is live iff it exists AND revokedAt is null. Exposes only the one
+/// referenced item — plans/lists stay private otherwise.
+model Share {
+  id                  String             @id @default(cuid())
+  slug                String             @unique
+  kind                ShareKind
+  userId              String
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealPlanId          String?
+  mealPlan            MealPlan?          @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  savedShoppingListId String?
+  savedShoppingList   SavedShoppingList? @relation(fields: [savedShoppingListId], references: [id], onDelete: Cascade)
+  revokedAt           DateTime?
+  createdAt           DateTime           @default(now())
+
+  @@index([userId])
+  @@index([mealPlanId])
+  @@index([savedShoppingListId])
 }
 
 model PlanDay {
