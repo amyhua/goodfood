@@ -1,12 +1,14 @@
 import { prisma } from "@goodfood/db";
 import { generateSettingsSchema } from "@/server/plans/settings";
 import { ProofMismatchError, generatePlan } from "@/server/plans/generate";
+import { resolveActor } from "@/server/auth/actor";
 import { solverClient } from "@/lib/solver";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-/** POST /api/plans/generate — validate -> candidates -> solve -> verify -> persist. */
+/** POST /api/plans/generate — validate -> candidates -> solve -> verify -> persist.
+ *  Owner is always the session actor (signed-in user, else demo) — never the client. */
 export async function POST(req: Request): Promise<Response> {
   let json: unknown;
   try {
@@ -19,7 +21,8 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "invalid settings", issues: parsed.error.flatten() }, { status: 400 });
   }
   try {
-    const out = await generatePlan(prisma, solverClient(), parsed.data);
+    const actor = await resolveActor();
+    const out = await generatePlan(prisma, solverClient(), { ...parsed.data, userId: actor.userId });
     return Response.json(out, { status: out.feasible ? 201 : 200 });
   } catch (err) {
     if (err instanceof ProofMismatchError) {

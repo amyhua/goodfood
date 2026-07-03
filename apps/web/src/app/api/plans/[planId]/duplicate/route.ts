@@ -1,11 +1,22 @@
 import { prisma } from "@goodfood/db";
+import { resolveActor } from "@/server/auth/actor";
+import { errorResponse } from "@/server/auth/http";
+import { assertOwnsPlan } from "@/server/plans/ownership";
 import { getPlan } from "@/server/plans/read";
 
 export const dynamic = "force-dynamic";
 
-/** POST /api/plans/:id/duplicate — clone plan + its latest immutable revision. */
+/** POST /api/plans/:id/duplicate — clone the caller's plan + its latest immutable revision. */
 export async function POST(_req: Request, ctx: { params: Promise<{ planId: string }> }): Promise<Response> {
   const { planId } = await ctx.params;
+  let actorId: string;
+  try {
+    const actor = await resolveActor();
+    actorId = actor.userId;
+    await assertOwnsPlan(prisma, actorId, planId);
+  } catch (err) {
+    return errorResponse(err);
+  }
   const src = await getPlan(prisma, planId);
   if (!src) return Response.json({ error: "plan not found" }, { status: 404 });
   const rev = src.revisions[0];

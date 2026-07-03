@@ -48,6 +48,33 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F2 — User auth and signups with per-user saved content — GOO-25 — 2026-07-03
+**Queue:** goodfood-followups ([GOO-23](https://linear.app/goodfoodapp/issue/GOO-23)).
+**Auth approach:** dependency-light credentials (scrypt via node:crypto — no native dep) + DB-backed
+Session rows keyed by an httpOnly `gf_session` cookie (no JWT; revoke = row delete). Chosen over
+NextAuth v5-beta for deterministic CI and strict DB-session row-level control.
+**Changed:** schema — `passwordHash`/`emailVerified` on User, new `Session` + `SavedShoppingList`
+models (migration `20260703140626_f2_auth_saved_lists`, additive, deployed via `migrate deploy`,
+no reset). apps/web/src/server/auth — password (scrypt), session (cookie+DB), service
+(signup/login/logout/getCurrentUser/requireUser, Zod), http error mapper, actor resolver
+(signed-in→user, else demo), demo reassign util. Routes: /api/auth/{signup,login,logout,me},
+/api/plans (list mine) + rename/delete on /api/plans/[id], ownership on get/save/duplicate/proof +
+generate owner forced from session, /api/shopping-lists CRUD. ownership.ts guards return 404 (no
+existence leak). UI: /login, /signup (AuthForm), /plans (MyPlans rename/delete), AccountButton in
+AppShell, "Save list" on shopping page, Plans nav tab.
+**Migrations:** `20260703140626_f2_auth_saved_lists` (add columns + 2 tables + FKs). Applied to Neon.
+**Tests run:** lint OK; typecheck 9/9; unit 25 passed (+4 password); build OK (all auth/CRUD routes);
+Playwright 30 passed (chromium+iPhone-12+Pixel-5). RUN_DB_INTEGRATION=1 auth.integration 6 passed
+(signup/session, logout→login, wrong-pw 401 + dup 409, plan ownership isolation, shopping-list
+isolation, demo reassign). Live HTTP: signup 201+cookie, me 200, save list 201, list lists/plans
+200 (authenticated), logout→me null, wrong pw 401, short pw 400.
+**Remaining gaps:** no OAuth / email-verification / password-reset yet (documented follow-ups);
+demo→user data migration is opt-in via reassignUserData, not automatic on signup; /plans needs the DB
+at runtime so it's excluded from the DB-free E2E set.
+**Migration notes:** run `pnpm --filter @goodfood/db exec prisma migrate deploy` on deploy. No new env
+vars (reuses DATABASE_URL). Cookie is `secure` only in production.
+**Manual QA:** /signup → land on /plans; save a shopping list from /shopping; sign out via AccountButton.
+
 ### Prompt F1 — Mobile-friendly design and usage — GOO-24 — 2026-07-03
 **Queue:** goodfood-followups ([GOO-23](https://linear.app/goodfoodapp/issue/GOO-23)). First UI phase:
 the base build reached only Prompt 6 (APIs, no UI), so F1 builds the core surfaces mobile-first

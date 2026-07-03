@@ -1,15 +1,17 @@
 import Link from "next/link";
+import { AccountButton } from "./AccountButton";
 
 /**
- * Responsive application shell (F1, GOO-24).
- * Mobile: sticky top bar + fixed bottom tab bar (touch targets >= 44px).
- * Desktop (>= md): left sidebar, no bottom bar. Pure links — no client JS needed.
+ * Responsive application shell (F1/F2).
+ * Mobile: sticky top bar (account control) + fixed bottom tab bar (touch targets >= 44px).
+ * Desktop (>= md): left sidebar with account control in the footer.
  */
 const NAV = [
   { href: "/planner", label: "Planner", icon: "🍽️" },
   { href: "/foods", label: "Foods", icon: "🔎" },
   { href: "/pantry", label: "Pantry", icon: "🧺" },
   { href: "/shopping", label: "Shopping", icon: "🛒" },
+  { href: "/plans", label: "Plans", icon: "📚" },
 ] as const;
 
 export function AppShell({
@@ -43,13 +45,17 @@ export function AppShell({
             </Link>
           ))}
         </nav>
+        <div className="mt-auto px-1 pt-6">
+          <AccountButton />
+        </div>
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/90">
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/90">
         <Link href="/" className="text-base font-semibold tracking-tight">
           good<span className="text-brand-600">food</span>
         </Link>
+        <AccountButton />
       </header>
 
       {/* Content — padded bottom on mobile so the tab bar never overlaps */}
@@ -58,7 +64,7 @@ export function AppShell({
       {/* Mobile bottom tab bar */}
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-neutral-200 bg-white/95 backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/95"
+        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-neutral-200 bg-white/95 backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/95"
       >
         {NAV.map((item) => (
           <Link

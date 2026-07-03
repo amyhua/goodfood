@@ -129,12 +129,15 @@ enum SnapshotScope {
 // ------------------------------- identity / tenancy -------------------------------
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  isDemo    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  isDemo        Boolean   @default(false)
+  /// scrypt password hash (format: scrypt$N$r$p$saltHex$hashHex). Null for demo/OAuth-only users (F2).
+  passwordHash  String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   profile                Profile?
   recommendationProfiles RecommendationProfile[]
@@ -143,8 +146,23 @@ model User {
   dietaryPreferences     DietaryPreference[]
   mealPlans              MealPlan[]
   ownedFoods             Food[]                  @relation("UserOwnedFoods")
+  sessions               Session[]
+  savedShoppingLists     SavedShoppingList[]
 
   @@index([isDemo])
+}
+
+/// DB-backed auth session (F2). The session id IS the opaque token stored in an
+/// httpOnly cookie; validity = row exists AND expiresAt in the future.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 /// Per-user demographic profile used to derive default recommendation targets.
@@ -395,12 +413,30 @@ model MealPlan {
   createdAt               DateTime               @default(now())
   updatedAt               DateTime               @updatedAt
 
-  days       PlanDay[]
-  revisions  PlanRevision[]
-  solverRuns SolverRun[]
+  days               PlanDay[]
+  revisions          PlanRevision[]
+  solverRuns         SolverRun[]
+  savedShoppingLists SavedShoppingList[]
 
   @@index([userId])
   @@index([status])
+}
+
+/// A user's saved shopping list under a custom name (F2). `items` is a snapshot of the
+/// aggregated list (ShoppingItem[]); mealPlan is optional so a list can outlive its plan.
+model SavedShoppingList {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealPlanId String?
+  mealPlan   MealPlan? @relation(fields: [mealPlanId], references: [id], onDelete: SetNull)
+  name       String
+  items      Json
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([mealPlanId])
 }
 
 model PlanDay {
