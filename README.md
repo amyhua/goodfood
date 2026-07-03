@@ -93,6 +93,38 @@ launch differs:
 Both run in an environment that **keeps working after you close your laptop and kill the terminal**,
 and you retrieve the result later from any device.
 
+The ready-to-run queue for this project lives at **[phase-prompts.md](phase-prompts.md)** — the full
+Prompt 0–13 build sequence (MVP cutline = Prompts 0–7), wrapped in the autonomy + per-phase-loop
+preamble that enforces the [CLAUDE.md](CLAUDE.md) rules.
+
+### Run the queue on Elgin-1 (always-on Mac mini)
+
+One-time bootstrap (see [docs/self-hosted-runs.md](docs/self-hosted-runs.md) for detail):
+
+```bash
+# On this laptop: ensure Tailscale is up, then copy the gitignored secrets over once.
+scp .env <you>@elgin-1:~/goodfood/.env
+
+# On Elgin-1 (ssh <you>@elgin-1 over Tailscale):
+git clone git@github.com:amyhua/goodfood.git ~/goodfood   # first time only
+cd ~/goodfood && brew install tmux                          # if not present; also install claude, pnpm, python@3.12
+```
+
+Launch the build (phase-prompts.md is committed, so `git pull` fetches it — no paste needed):
+
+```bash
+ssh <you>@elgin-1
+cd ~/goodfood && git pull
+./scripts/run-queue.sh goodfood-build phase-prompts.md
+#   fully hands-off (no permission prompts, trusted machine):
+#   CLAUDE_MODE=yolo ./scripts/run-queue.sh goodfood-build phase-prompts.md
+```
+
+Then close your laptop. Retrieve anytime: `ssh <you>@elgin-1 && tmux attach -t goodfood-goodfood-build`
+(detach with `Ctrl-b` then `d`), `tail -f ~/goodfood/logs/*.log`, or just `git pull` + open the
+`Queue: goodfood-build` issue in Linear. Register the run in
+[docs/cloud-queues.md](docs/cloud-queues.md).
+
 **Why retrieval is guaranteed here:** every phase is **committed to GitHub and tracked in Linear**
 (`Issue ID: GOO-N`). So even if the cloud session ends, the work is durable — `git pull` and open the
 queue's parent Linear issue to see exactly what shipped and what's left. The session is a convenience;
