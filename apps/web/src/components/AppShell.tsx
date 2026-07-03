@@ -12,6 +12,7 @@ const NAV = [
   { href: "/pantry", label: "Pantry", icon: "🧺" },
   { href: "/shopping", label: "Shopping", icon: "🛒" },
   { href: "/plans", label: "Plans", icon: "📚" },
+  { href: "/board", label: "Board", icon: "🌱" },
 ] as const;
 
 export function AppShell({
@@ -64,7 +65,7 @@ export function AppShell({
       {/* Mobile bottom tab bar */}
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-neutral-200 bg-white/95 backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/95"
+        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-6 border-t border-neutral-200 bg-white/95 backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/95"
       >
         {NAV.map((item) => (
           <Link

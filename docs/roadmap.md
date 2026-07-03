@@ -48,6 +48,24 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F8 (optional) — Social activity board — GOO-31 — 2026-07-03
+**Changed:** schema — BoardPost (author, plan, title, description, DietaryPreset[] tags, removedAt
+takedown) + BoardLike/BoardSave/BoardReport (migration `20260703144004_f8_board`, additive, deployed
+no-reset). server/board — rate-limit (pure, ≤10 posts/h, ≤30 reports/h), service (publishPost
+owner-gated + rate-limited, listFeed diet filter + viewer like/save state, adoptPost, toggleLike/Save,
+reportPost), reusable server/plans/duplicate.ts (adopt clones plan + immutable revision/snapshots).
+Routes /api/board (GET feed + POST publish) + /api/board/[id]/{adopt,like,save,report}. UI: /board feed
+(diet chips, adopt/like/save/report), PublishToBoard on /plans, Board nav tab.
+**Migrations:** `20260703144004_f8_board`. Applied to Neon.
+**Tests run:** lint OK; typecheck 9/9; unit 33 passed (+2 rate-limit); build OK (6 board routes);
+Playwright 45 passed. RUN_DB_INTEGRATION board.integration 1 passed (publish owner-only, diet filter,
+adopt=duplicate-into-caller, like/save toggle, report, takedown hides + blocks actions).
+**Remaining gaps:** moderation queue + LLM safety pass is F13 (here: report + removedAt takedown only);
+practitioner roles are F12; feed is un-paginated (take 100). Anonymous users act as the demo user.
+**Migration notes:** `prisma migrate deploy`. No new env.
+**Manual QA:** /plans → Publish a plan with a description + diet tags → /board shows it → Adopt into a
+second account → Like/Save/Report.
+
 ### Prompt F7 (optional) — SEO & link-preview hardening — GOO-30 — 2026-07-03
 **Changed:** app/robots.ts (allow public; disallow /api, /plans, /login, /signup; sitemap ref),
 app/sitemap.ts (public routes), app/opengraph-image.tsx (default brand OG card via next/og for every

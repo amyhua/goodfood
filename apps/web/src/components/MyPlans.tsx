@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ShareSheet } from "@/components/ShareSheet";
+import { PublishToBoard } from "@/components/PublishToBoard";
 
 interface PlanRow {
   id: string;
@@ -109,6 +110,7 @@ export function MyPlans() {
                   {p.status.toLowerCase()} · {p.durationDays}d
                 </span>
                 <ShareSheet kind="PLAN" id={p.id} title={p.name} summary={`${p.durationDays}-day meal plan`} />
+                <PublishToBoard planId={p.id} planName={p.name} />
                 <button onClick={() => renamePlan(p.id, p.name)} className="min-h-9 rounded px-2 text-sm text-brand-600 hover:bg-brand-50">
                   Rename
                 </button>

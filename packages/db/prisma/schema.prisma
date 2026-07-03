@@ -155,6 +155,10 @@ model User {
   sessions               Session[]
   savedShoppingLists     SavedShoppingList[]
   shares                 Share[]
+  boardPosts             BoardPost[]             @relation("BoardAuthor")
+  boardLikes             BoardLike[]
+  boardSaves             BoardSave[]
+  boardReports           BoardReport[]
 
   @@index([isDemo])
 }
@@ -425,6 +429,7 @@ model MealPlan {
   solverRuns         SolverRun[]
   savedShoppingLists SavedShoppingList[]
   shares             Share[]
+  boardPosts         BoardPost[]
 
   @@index([userId])
   @@index([status])
@@ -468,6 +473,64 @@ model Share {
   @@index([userId])
   @@index([mealPlanId])
   @@index([savedShoppingListId])
+}
+
+/// A user's explicit publication of a meal plan to the shared social board (F8). Only posts
+/// with removedAt == null are visible. dietTags let the feed filter by dietary pattern.
+model BoardPost {
+  id          String          @id @default(cuid())
+  authorId    String
+  author      User            @relation("BoardAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  mealPlanId  String
+  mealPlan    MealPlan        @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  dietTags    DietaryPreset[]
+  removedAt   DateTime? // moderation/takedown (F13); null = live
+  createdAt   DateTime        @default(now())
+
+  likes   BoardLike[]
+  saves   BoardSave[]
+  reports BoardReport[]
+
+  @@index([createdAt])
+  @@index([authorId])
+}
+
+model BoardLike {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model BoardSave {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId])
+}
+
+model BoardReport {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reason    String
+  createdAt DateTime  @default(now())
+
+  @@index([postId])
 }
 
 model PlanDay {
