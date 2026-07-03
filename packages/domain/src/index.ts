@@ -52,3 +52,7 @@ export function scalePer100g(per100g: number | null, grams: number): number | nu
 
 export * from "./catalog";
 export * from "./validation";
+
+export * from "./proof";
+export * from "./portion";
+export * from "./format";

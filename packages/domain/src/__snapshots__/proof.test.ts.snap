@@ -1,0 +1,144 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`proof-table snapshot > matches the stable proof shape 1`] = `
+[
+  {
+    "confidence": "COMPLETE",
+    "consumed": 38,
+    "contributors": [
+      {
+        "amount": 33,
+        "dataQuality": "KNOWN",
+        "foodId": "salmon",
+        "foodName": "Salmon, cooked",
+        "grams": 150,
+        "pctOfTotal": 86.8421052631579,
+        "source": {
+          "dataset": "SR Legacy",
+          "fdcId": 173722,
+        },
+        "unit": "g",
+      },
+      {
+        "amount": 5,
+        "dataQuality": "KNOWN",
+        "foodId": "oats",
+        "foodName": "Oats, cooked",
+        "grams": 200,
+        "pctOfTotal": 13.157894736842104,
+        "source": {
+          "dataset": "SR Legacy",
+          "fdcId": 168421,
+        },
+        "unit": "g",
+      },
+    ],
+    "max": null,
+    "min": 30,
+    "mode": "MINIMUM",
+    "nutrientKey": "protein",
+    "percentOfTarget": 126.66666666666666,
+    "sources": [
+      {
+        "dataset": "SR Legacy",
+        "fdcId": 173722,
+        "foodId": "salmon",
+      },
+      {
+        "dataset": "SR Legacy",
+        "fdcId": 168421,
+        "foodId": "oats",
+      },
+    ],
+    "status": "MET",
+    "target": null,
+    "unit": "g",
+  },
+  {
+    "confidence": "COMPLETE",
+    "consumed": 2.55,
+    "contributors": [
+      {
+        "amount": 1.8,
+        "dataQuality": "KNOWN",
+        "foodId": "oats",
+        "foodName": "Oats, cooked",
+        "grams": 200,
+        "pctOfTotal": 70.58823529411765,
+        "source": {
+          "dataset": "SR Legacy",
+          "fdcId": 168421,
+        },
+        "unit": "mg",
+      },
+      {
+        "amount": 0.75,
+        "dataQuality": "KNOWN",
+        "foodId": "salmon",
+        "foodName": "Salmon, cooked",
+        "grams": 150,
+        "pctOfTotal": 29.411764705882355,
+        "source": {
+          "dataset": "SR Legacy",
+          "fdcId": 173722,
+        },
+        "unit": "mg",
+      },
+    ],
+    "max": null,
+    "min": null,
+    "mode": "TARGET",
+    "nutrientKey": "iron",
+    "percentOfTarget": 14.166666666666666,
+    "sources": [
+      {
+        "dataset": "SR Legacy",
+        "fdcId": 168421,
+        "foodId": "oats",
+      },
+      {
+        "dataset": "SR Legacy",
+        "fdcId": 173722,
+        "foodId": "salmon",
+      },
+    ],
+    "status": "UNDER",
+    "target": 18,
+    "unit": "mg",
+  },
+  {
+    "confidence": "MISSING",
+    "consumed": null,
+    "contributors": [
+      {
+        "amount": null,
+        "dataQuality": "MISSING",
+        "foodId": "salmon",
+        "foodName": "Salmon, cooked",
+        "grams": 150,
+        "pctOfTotal": null,
+        "source": {
+          "dataset": "SR Legacy",
+          "fdcId": 173722,
+        },
+        "unit": "mcg",
+      },
+    ],
+    "max": null,
+    "min": null,
+    "mode": "TARGET",
+    "nutrientKey": "iodine",
+    "percentOfTarget": null,
+    "sources": [
+      {
+        "dataset": "SR Legacy",
+        "fdcId": 173722,
+        "foodId": "salmon",
+      },
+    ],
+    "status": "UNKNOWN",
+    "target": 150,
+    "unit": "mcg",
+  },
+]
+`;

@@ -36,6 +36,7 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 | Phase | Linear | State | Summary |
 |-------|--------|-------|---------|
+| 4 — Proof engine | [GOO-20](https://linear.app/goodfoodapp/issue/GOO-20) | Done | Pure-TS nutrient calc, meal/day/week aggregation, honest status vs modes/tolerance, contributors, proof shape |
 | 3 — USDA ingestion | [GOO-18](https://linear.app/goodfoodapp/issue/GOO-18) | Done | Typed FDC client (retry/cache/timeout), normalizer, idempotent import, /api/foods/*, 100-food live catalog |
 | 2 — Nutrition & plan schema | [GOO-17](https://linear.app/goodfoodapp/issue/GOO-17) | Done | 21-model Prisma schema + CHECK invariants, seed, domain catalog/validation, DB integration tests |
 | 1 — Monorepo & gates | [GOO-16](https://linear.app/goodfoodapp/issue/GOO-16) | Done | pnpm/Turbo monorepo, CI, health endpoints, Tailwind shell, all gates green |
@@ -44,6 +45,18 @@ Every requested user-facing feature from the phase queue appears above and is tr
 ## Phase log
 
 <!-- Prepend each completed phase using the template below. -->
+
+### Prompt 4 — Nutrient calculation & proof engine — GOO-20 — 2026-07-03
+**Changed:** packages/domain: proof.ts (aggregate/status/contributors/proof shape), portion.ts
+(grams<->household), format.ts (display rounding), index.ts exports; proof/portion/format tests (+snapshot).
+**Migrations:** none.
+**Tests run:** lint OK; typecheck 9/9; pnpm test OK (5 pkgs); domain 30 tests — golden day reconciles
+exactly with raw calc, property (2x grams => 2x known nutrient), missing=>UNKNOWN (target/max never MET
+on missing; minimum MET when KNOWN>=min), proof-table snapshot.
+**Remaining gaps:** engine consumes DB-shaped inputs; the plan API (Prompt 6) wires DB foods -> engine
+and verifies solver output against it.
+**Migration notes:** none. Pure functions; no rounding before calculation (display-only formatting).
+**Manual QA:** buildDayProof(goals, meals) returns an explainable proof map per nutrient.
 
 ### Prompt 3 — USDA FoodData Central ingestion — GOO-18 — 2026-07-03
 **Changed:** new packages/usda (client.ts retry/backoff/timeout/cache, normalize.ts per-100g +
