@@ -1,0 +1,31 @@
+# Local dev: Postgres + solver. The web app runs via `pnpm dev` on the host.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: goodfood
+      POSTGRES_PASSWORD: goodfood
+      POSTGRES_DB: goodfood
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goodfood"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  solver:
+    build:
+      context: ./services/solver
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

@@ -20,3 +20,14 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Test / build artifacts
+coverage/
+playwright-report/
+test-results/
+*.egg-info/
+.pytest_cache/
+next-env.d.ts
+
+# Local queue-runner logs
+logs/

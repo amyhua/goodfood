@@ -36,11 +36,32 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 | Phase | Linear | State | Summary |
 |-------|--------|-------|---------|
-| 0 — Product contract | [GOO-15](https://linear.app/goodfoodapp/issue/GOO-15) | In Progress | product-spec, architecture, roadmap, ADRs 001–003, req→test matrix |
+| 1 — Monorepo & gates | [GOO-16](https://linear.app/goodfoodapp/issue/GOO-16) | Done | pnpm/Turbo monorepo, CI, health endpoints, Tailwind shell, all gates green |
+| 0 — Product contract | [GOO-15](https://linear.app/goodfoodapp/issue/GOO-15) | Done | product-spec, architecture, roadmap, ADRs 001–003, req→test matrix |
 
 ## Phase log
 
 <!-- Prepend each completed phase using the template below. -->
+
+### Prompt 1 — Monorepo & quality gates — GOO-16 — 2026-07-03
+**Changed:** root (package.json, pnpm-workspace.yaml, turbo.json, tsconfig.base.json, eslint.config.mjs,
+.prettierrc, .npmrc, .env.example, docker-compose.yml, .github/workflows/ci.yml); apps/web (Next 15
+App Router, Tailwind v4, /health route, env validation, dashboard, Playwright, Dockerfile);
+services/solver (FastAPI /health+/ready, pytest, requirements, Dockerfile, dev/test scripts);
+packages/config, packages/domain, packages/db (Prisma datasource/generator), packages/api-client.
+**Migrations:** none (Prisma datasource + generator only; models land in Prompt 2).
+**Tests run:** `pnpm lint` ✓ · `pnpm typecheck` ✓ (7/7) · `pnpm test` ✓ (web 4, domain 4, api-client 2,
+db 1) · `pnpm build` ✓ · solver `pytest` ✓ (3 passed). Manual: web dev + solver uvicorn both serve
+`/health` 200.
+**Remaining gaps:** Playwright specs authored but not run locally (browsers not installed; CI covers);
+Prisma schema is datasource-only until Prompt 2; api-client is a hand-written shell until Prompt 5
+generates from OpenAPI; docker images not built locally (docker absent) — Dockerfiles shipped.
+**Migration notes:** run `pnpm install`, then `pnpm --filter @goodfood/db db:generate` before typecheck
+(CI does this). Native build scripts allowlisted via `onlyBuiltDependencies` in pnpm-workspace.yaml.
+**Manual QA:** `pnpm dev` → http://localhost:3000 (dashboard) + /health; `pnpm solver:dev` → :8000/health.
+**Assumptions:** solver venv default `python3.12` (local Homebrew 3.12 has a broken libexpat/pip, so
+proofs were run with system `python3` 3.9 — Docker/CI use 3.12); USDA key env renamed to
+`USDA_FDC_API_KEY` per Prompt 1 (repo `.env` still carries the legacy `FDC_API_KEY`).
 
 ### Template (copy for each phase)
 

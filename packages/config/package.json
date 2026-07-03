@@ -1,0 +1,18 @@
+{
+  "name": "@goodfood/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint.config.mjs",
+    "./vitest": "./vitest.base.ts",
+    "./tailwind": "./tailwind.css"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^3.0.5"
+  }
+}

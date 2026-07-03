@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Node — lint · typecheck · test · build
+    runs-on: ubuntu-latest
+    env:
+      # Dummy values so Prisma generate + env-shaped steps never need real secrets.
+      DATABASE_URL: postgresql://user:password@localhost:5432/goodfood?schema=public
+      DIRECT_URL: postgresql://user:password@localhost:5432/goodfood?schema=public
+      SOLVER_URL: http://localhost:8000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client (verifies db package boundary)
+        run: pnpm --filter @goodfood/db db:generate
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  solver:
+    name: Python — pytest · importability
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/solver
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - name: Verify Python importability
+        run: python -c "import app.main; assert app.main.app.title == 'goodfood-solver'"
+      - run: pytest -q

@@ -136,20 +136,31 @@ profile** — the infographic's values are illustrative, not the canonical targe
 be hardcoded as universal (rule 2: never fabricate). Food *facts* still come from USDA FDC (rule 1);
 nutrient *targets* come from the DRI/DV reference — two distinct sources.
 
-## Monorepo layout *(planned — establish in the scaffolding phase)*
+## Monorepo layout *(established — Prompt 1)*
+
+pnpm workspaces + Turborepo. Actual layout as scaffolded (GOO-16):
 
 ```
 apps/
-  web/           Next.js App Router frontend + API routes (Vercel)
-  solver/        Python FastAPI + OR-Tools optimization service (containerized)
+  web/           Next.js App Router frontend + route handlers (Vercel); /health, env validation
+services/
+  solver/        Python 3.12 FastAPI + (OR-Tools, Prompt 5) optimization service (containerized)
 packages/
-  db/            Prisma schema, client, migrations (Neon Postgres)
-  nutrition/     domain logic: nutrient math, per-100g normalization, data-quality states
-  contracts/     shared Zod schemas / API contract types (web ↔ solver)
-docs/            phase-brief, architecture, roadmap, decisions
+  domain/        pure TS domain: nutrient keys, per-100g math, data-quality states (proof engine → Prompt 4)
+  db/            Prisma schema, client factory, migrations, seed (Neon Postgres)
+  api-client/    typed client for the solver OpenAPI contract (generated types → Prompt 5)
+  config/        shared TS base, ESLint flat config, Tailwind theme, Vitest defaults
+docs/            phase-brief, product-spec, architecture, roadmap, ADRs, req→test matrix
 ```
 
-Flat `apps/*` and `packages/*` siblings — no loose root dirs (CLAUDE.md §4.3).
+Workspaces are `apps/*` + `packages/*`; the Python solver lives under `services/` (not a pnpm
+workspace — built/tested by its own venv + CI job). Flat siblings, no loose root dirs (CLAUDE.md §4.3).
+Internal TS packages are consumed as source (`main`/`types` → `src/index.ts`) via Next
+`transpilePackages` and `moduleResolution: Bundler` — no pre-build step for typecheck/test.
+
+**Quality gates (Prompt 1):** `pnpm lint` (ESLint 9 flat), `pnpm typecheck` (tsc strict + Prisma
+generate), `pnpm test` (Vitest), `pnpm build` (Next), plus solver `pytest`. CI (`.github/workflows/ci.yml`)
+runs the Node gates and a separate Python job (importability + pytest) on a clean checkout.
 
 ## Data model principles *(planned)*
 

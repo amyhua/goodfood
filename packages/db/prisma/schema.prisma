@@ -1,0 +1,12 @@
+// goodfood Prisma schema.
+// Prompt 1 establishes the datasource + generator only; Prompt 2 adds the full
+// nutrition/plan model set. Do NOT reset the DB; always use migrations.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
