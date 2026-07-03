@@ -36,12 +36,35 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 | Phase | Linear | State | Summary |
 |-------|--------|-------|---------|
+| 2 — Nutrition & plan schema | [GOO-17](https://linear.app/goodfoodapp/issue/GOO-17) | Done | 21-model Prisma schema + CHECK invariants, seed, domain catalog/validation, DB integration tests |
 | 1 — Monorepo & gates | [GOO-16](https://linear.app/goodfoodapp/issue/GOO-16) | Done | pnpm/Turbo monorepo, CI, health endpoints, Tailwind shell, all gates green |
 | 0 — Product contract | [GOO-15](https://linear.app/goodfoodapp/issue/GOO-15) | Done | product-spec, architecture, roadmap, ADRs 001–003, req→test matrix |
 
 ## Phase log
 
 <!-- Prepend each completed phase using the template below. -->
+
+### Prompt 2 — Canonical nutrition & plan schema — GOO-17 — 2026-07-03
+**Changed:** packages/db/prisma/schema.prisma (21 models + 12 enums), migration
+`20260703195921_init_nutrition_plan_schema` (+ hand-added CHECK constraints), prisma/seed.ts,
+packages/db package.json/tsconfig (+@goodfood/domain, prisma.seed), packages/db integration tests
+(schema + snapshot immutability); packages/domain src/catalog.ts (nutrient catalog + default adult
+goals + synthetic foods), src/validation.ts (goal/unit/grams/pantry validators), index.ts (enum
+casing → Prisma), validation.test.ts.
+**Migrations:** `20260703195921_init_nutrition_plan_schema` — applied cleanly to Neon (empty DB).
+Includes CHECK constraints: grams>0, gramWeight>0, ediblePortionFactor>0, pantry qty>=0,
+foodNutrient amount>=0, and min≤target≤max on goals.
+**Tests run:** `pnpm lint` ✓ · `pnpm typecheck` 7/7 ✓ · `pnpm test` (offline; integration auto-skipped)
+✓ · `RUN_DB_INTEGRATION=1` db suite ✓ (8 passed: 6 schema/CHECK/missing-not-zero, 1 snapshot
+immutability, 1 factory) · domain validation ✓ (catalog + goal modes incl. DISABLED≠MAX-0). Seed ✓
+(21 nutrients, 21 goals, 1 demo user, 4 synthetic foods; idempotent).
+**Remaining gaps:** foods are SYNTHETIC placeholders until USDA ingestion (Prompt 3); no auth yet
+(tenant ownership fields present, demo user only); proof engine computes from this schema in Prompt 4.
+**Migration notes:** run `pnpm --filter @goodfood/db exec prisma migrate deploy` then
+`prisma db seed`. Integration tests are gated behind `RUN_DB_INTEGRATION=1` (CI has no DB and skips
+them); they require a seeded database.
+**Manual QA:** `psql $DIRECT_URL -c "\dt"` shows 21 tables; seed populates the demo account +
+default nutrient profile.
 
 ### Prompt 1 — Monorepo & quality gates — GOO-16 — 2026-07-03
 **Changed:** root (package.json, pnpm-workspace.yaml, turbo.json, tsconfig.base.json, eslint.config.mjs,

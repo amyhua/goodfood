@@ -1,6 +1,8 @@
-// goodfood Prisma schema.
-// Prompt 1 establishes the datasource + generator only; Prompt 2 adds the full
-// nutrition/plan model set. Do NOT reset the DB; always use migrations.
+// goodfood Prisma schema — canonical nutrition + plan model (Prompt 2, GOO-17).
+// Invariants (docs/phase-brief.md): nutrients per 100 g with source/quality/importedAt;
+// missing != zero (nullable amounts); immutable saved-plan snapshots; disabled != max-0.
+// Do NOT reset the DB; always use migrations. Numeric values use Decimal.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,4 +11,501 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+// ------------------------------- enums -------------------------------
+
+enum FoodSource {
+  USDA_FOUNDATION
+  USDA_SR_LEGACY
+  USDA_BRANDED
+  SYNTHETIC
+  USER
+}
+
+/// Data-quality state of a stored nutrient value (product-spec §4). MISSING != zero.
+enum DataQuality {
+  KNOWN
+  PARTIAL
+  MISSING
+  ESTIMATED
+  USER_ENTERED
+}
+
+/// Per-nutrient optimization mode (product-spec §2.2). DISABLED != MAXIMUM of 0.
+enum NutrientMode {
+  DISABLED
+  MINIMUM
+  TARGET
+  MAXIMUM
+}
+
+enum NutrientCategory {
+  ENERGY
+  MACRO
+  VITAMIN
+  MINERAL
+  FATTY_ACID
+  OTHER
+}
+
+enum PantryMode {
+  PANTRY_ONLY
+  PREFER_PANTRY
+  PANTRY_PLUS_SHOPPING
+}
+
+enum PantryAvailability {
+  UNLIMITED
+  LIMITED
+  UNAVAILABLE
+}
+
+enum MealRole {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+enum PlanStatus {
+  DRAFT
+  SAVED
+  ARCHIVED
+}
+
+enum DietaryPreset {
+  VEGAN
+  VEGETARIAN
+  PESCATARIAN
+  NONDAIRY
+  PALEO
+  KETO
+  WHOLE_FOODS
+}
+
+enum BanReason {
+  ALLERGY
+  INTOLERANCE
+  DISLIKE
+  RELIGIOUS
+  OTHER
+}
+
+enum SolverMode {
+  STRICT
+  DIAGNOSTIC
+}
+
+enum SolverStatus {
+  OPTIMAL
+  FEASIBLE
+  INFEASIBLE
+  TIME_LIMIT
+  ERROR
+}
+
+/// Proof status for a nutrient (product-spec §3). UNKNOWN when essential data missing.
+enum ProofStatus {
+  MET
+  UNDER
+  OVER
+  UNKNOWN
+}
+
+/// Data completeness behind a proof value (not a guess of correctness).
+enum ProofConfidence {
+  COMPLETE
+  PARTIAL
+  MISSING
+}
+
+enum SnapshotScope {
+  PLAN
+  WEEK
+  DAY
+}
+
+// ------------------------------- identity / tenancy -------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  isDemo    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile                Profile?
+  recommendationProfiles RecommendationProfile[]
+  pantryItems            PantryItem[]
+  foodBans               FoodBan[]
+  dietaryPreferences     DietaryPreference[]
+  mealPlans              MealPlan[]
+  ownedFoods             Food[]                  @relation("UserOwnedFoods")
+
+  @@index([isDemo])
+}
+
+/// Per-user demographic profile used to derive default recommendation targets.
+model Profile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName   String?
+  age           Int?
+  sex           String? // "female" | "male" | "unspecified" — drives DRI defaults
+  weightKg      Decimal? @db.Decimal(6, 2)
+  heightCm      Decimal? @db.Decimal(6, 2)
+  activityLevel String? // sedentary | light | moderate | active | very_active
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ------------------------------- nutrient catalog + targets -------------------------------
+
+model NutrientDefinition {
+  id                String           @id @default(cuid())
+  key               String           @unique // canonical key, e.g. "vitamin_e"
+  displayName       String
+  unit              String // canonical storage unit, e.g. "mg", "mcg", "g", "kcal", "mcg DFE"
+  category          NutrientCategory
+  sortOrder         Int              @default(0)
+  hasDailyValue     Boolean          @default(true) // false => show "—", never 0% (invariant 4)
+  defaultUpperLimit Decimal?         @db.Decimal(14, 4) // tolerable upper intake (UL), if any
+  conversionRules   Json? // e.g. IU->mcg factors, source field mapping
+  sourceRefs        Json? // FDC nutrient numbers + DRI/DV references
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  foodNutrients FoodNutrient[]
+  goals         RecommendationGoal[]
+
+  @@index([category, sortOrder])
+}
+
+/// A named set of per-nutrient targets. userId null => system/global default profile.
+model RecommendationProfile {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isDefault   Boolean  @default(false)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  goals     RecommendationGoal[]
+  mealPlans MealPlan[]
+
+  @@index([userId])
+  @@index([isDefault])
+}
+
+model RecommendationGoal {
+  id                      String                @id @default(cuid())
+  recommendationProfileId String
+  recommendationProfile   RecommendationProfile @relation(fields: [recommendationProfileId], references: [id], onDelete: Cascade)
+  nutrientKey             String
+  nutrient                NutrientDefinition    @relation(fields: [nutrientKey], references: [key])
+  mode                    NutrientMode          @default(DISABLED)
+  // Nullable so DISABLED carries no bounds and is provably distinct from MAXIMUM=0.
+  minAmount               Decimal?              @db.Decimal(14, 4)
+  targetAmount            Decimal?              @db.Decimal(14, 4)
+  maxAmount               Decimal?              @db.Decimal(14, 4)
+  toleranceLowPct         Decimal?              @db.Decimal(6, 3)
+  toleranceHighPct        Decimal?              @db.Decimal(6, 3)
+  upperLimit              Decimal?              @db.Decimal(14, 4)
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  @@unique([recommendationProfileId, nutrientKey])
+  @@index([nutrientKey])
+}
+
+// ------------------------------- foods -------------------------------
+
+model Food {
+  id                  String      @id @default(cuid())
+  source              FoodSource
+  fdcId               Int? // USDA FDC id; null for synthetic/user foods
+  name                String
+  scientificName      String?
+  foodCategory        String?
+  preparationState    String? // raw | cooked | roasted | ...
+  ediblePortionFactor Decimal     @default(1) @db.Decimal(6, 4)
+  overallDataQuality  DataQuality @default(KNOWN)
+  isSynthetic         Boolean     @default(false)
+  sourceDataset       String? // "Foundation" | "SR Legacy" | ...
+  sourceVersion       String?
+  ownerId             String?
+  owner               User?       @relation("UserOwnedFoods", fields: [ownerId], references: [id], onDelete: Cascade)
+  rawSource           Json? // verbatim source metadata for provenance (invariant 3)
+  importedAt          DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  nutrients       FoodNutrient[]
+  portions        FoodPortion[]
+  aliases         FoodAlias[]
+  tags            FoodTag[]
+  images          FoodImage[]
+  pantryItems     PantryItem[]
+  bans            FoodBan[]
+  mealIngredients MealIngredient[]
+
+  // Postgres treats NULLs as distinct, so multiple null-fdcId foods coexist while
+  // real imports are unique per (source, fdcId) — enables idempotent imports.
+  @@unique([source, fdcId])
+  @@index([name])
+  @@index([isSynthetic])
+  @@index([source])
+}
+
+model FoodAlias {
+  id     String @id @default(cuid())
+  foodId String
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  alias  String
+  kind   String @default("common") // common | scientific | search
+
+  @@unique([foodId, alias])
+  @@index([alias])
+}
+
+model FoodNutrient {
+  id               String             @id @default(cuid())
+  foodId           String
+  food             Food               @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  nutrientKey      String
+  nutrient         NutrientDefinition @relation(fields: [nutrientKey], references: [key])
+  // NULL amount + MISSING quality == "we do not know", never zero (invariant 4).
+  amountPer100g    Decimal?           @db.Decimal(14, 4)
+  unit             String
+  dataQuality      DataQuality        @default(KNOWN)
+  sourceDataset    String?
+  nutrientSourceId String? // FDC nutrient id / lab method reference
+  importedAt       DateTime?
+
+  @@unique([foodId, nutrientKey])
+  @@index([nutrientKey])
+}
+
+model FoodPortion {
+  id          String   @id @default(cuid())
+  foodId      String
+  food        Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  description String // "1 cup", "3/4 cup", "1 tbsp"
+  gramWeight  Decimal  @db.Decimal(10, 3)
+  amount      Decimal? @db.Decimal(10, 3)
+  modifier    String?
+  sequence    Int      @default(0)
+
+  @@index([foodId])
+}
+
+model FoodTag {
+  id     String @id @default(cuid())
+  foodId String
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  // e.g. "animal", "dairy", "fish", "poultry", "red-meat", "grain", "legume",
+  // "heavily-processed" — the diet/restriction engine (Prompt 8) compiles against these.
+  tag    String
+
+  @@unique([foodId, tag])
+  @@index([tag])
+}
+
+model FoodImage {
+  id            String   @id @default(cuid())
+  foodId        String
+  food          Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  url           String
+  altText       String
+  license       String // required — no unlicensed images (invariant 10)
+  source        String
+  attribution   String?
+  cropMeta      Json?
+  isPlaceholder Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([foodId])
+}
+
+// ------------------------------- pantry + rules (tenant-owned) -------------------------------
+
+model PantryItem {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodId        String
+  food          Food               @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  // NULL quantity => "unknown, check pantry" (Prompt 11); never assumed infinite/zero.
+  quantityGrams Decimal?           @db.Decimal(12, 3)
+  unit          String? // household unit label if entered that way
+  availability  PantryAvailability @default(LIMITED)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([userId, foodId])
+  @@index([userId])
+}
+
+model FoodBan {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodId    String?
+  food      Food?     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  tag       String? // ban a whole tag/category, e.g. "shellfish"
+  matchText String? // free-text match for custom bans
+  reason    BanReason @default(OTHER)
+  note      String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tag])
+}
+
+model DietaryPreference {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preset    DietaryPreset
+  createdAt DateTime      @default(now())
+
+  @@unique([userId, preset])
+  @@index([userId])
+}
+
+// ------------------------------- plans -------------------------------
+
+model MealPlan {
+  id                      String                 @id @default(cuid())
+  userId                  String
+  user                    User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                    String
+  durationDays            Int                    @default(1)
+  status                  PlanStatus             @default(DRAFT)
+  pantryMode              PantryMode             @default(PANTRY_PLUS_SHOPPING)
+  recommendationProfileId String?
+  recommendationProfile   RecommendationProfile? @relation(fields: [recommendationProfileId], references: [id])
+  seed                    BigInt                 @default(0)
+  settings                Json? // nutrient modes + weekly/variety settings at generation time
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  days       PlanDay[]
+  revisions  PlanRevision[]
+  solverRuns SolverRun[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model PlanDay {
+  id              String    @id @default(cuid())
+  mealPlanId      String
+  mealPlan        MealPlan  @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  dayIndex        Int
+  date            DateTime?
+  targetOverrides Json? // varying daily targets (training/rest days, Prompt 10)
+
+  meals Meal[]
+
+  @@unique([mealPlanId, dayIndex])
+}
+
+model Meal {
+  id        String   @id @default(cuid())
+  planDayId String
+  planDay   PlanDay  @relation(fields: [planDayId], references: [id], onDelete: Cascade)
+  role      MealRole
+  locked    Boolean  @default(false)
+  sequence  Int      @default(0)
+
+  ingredients MealIngredient[]
+
+  @@unique([planDayId, role])
+}
+
+model MealIngredient {
+  id               String  @id @default(cuid())
+  mealId           String
+  meal             Meal    @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  foodId           String
+  food             Food    @relation(fields: [foodId], references: [id])
+  grams            Decimal @db.Decimal(12, 3)
+  householdMeasure String? // friendly serving language for display
+  locked           Boolean @default(false)
+  fromPantry       Boolean @default(false)
+  sequence         Int     @default(0)
+
+  @@index([mealId])
+  @@index([foodId])
+}
+
+/// Immutable, auditable revision of a plan. The snapshotJson freezes the exact
+/// per-ingredient per-100g nutrient values used at generation time (invariant 5).
+model PlanRevision {
+  id              String     @id @default(cuid())
+  mealPlanId      String
+  mealPlan        MealPlan   @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  revisionNumber  Int
+  reason          String?
+  snapshotJson    Json // full immutable capture: meals, ingredients, grams, per-100g values, provenance
+  solverRunId     String?    @unique
+  solverRun       SolverRun? @relation(fields: [solverRunId], references: [id])
+  createdByUserId String?
+  createdAt       DateTime   @default(now())
+
+  nutrientSnapshots PlanNutrientSnapshot[]
+
+  @@unique([mealPlanId, revisionNumber])
+  @@index([mealPlanId])
+}
+
+/// Frozen per-nutrient proof row for a revision (day/plan/week scope).
+model PlanNutrientSnapshot {
+  id              String          @id @default(cuid())
+  planRevisionId  String
+  planRevision    PlanRevision    @relation(fields: [planRevisionId], references: [id], onDelete: Cascade)
+  scope           SnapshotScope   @default(DAY)
+  dayIndex        Int? // set when scope = DAY
+  nutrientKey     String
+  mode            NutrientMode
+  minAmount       Decimal?        @db.Decimal(14, 4)
+  targetAmount    Decimal?        @db.Decimal(14, 4)
+  maxAmount       Decimal?        @db.Decimal(14, 4)
+  // Nullable consumed => UNKNOWN (missing data), never coerced to 0 (invariant 4).
+  consumedAmount  Decimal?        @db.Decimal(14, 4)
+  unit            String
+  percentOfTarget Decimal?        @db.Decimal(8, 2)
+  status          ProofStatus     @default(UNKNOWN)
+  confidence      ProofConfidence @default(COMPLETE)
+
+  @@unique([planRevisionId, scope, dayIndex, nutrientKey])
+  @@index([planRevisionId])
+  @@index([nutrientKey])
+}
+
+/// Audit of every solver invocation feeding a plan/revision.
+model SolverRun {
+  id             String       @id @default(cuid())
+  mealPlanId     String?
+  mealPlan       MealPlan?    @relation(fields: [mealPlanId], references: [id], onDelete: SetNull)
+  mode           SolverMode   @default(STRICT)
+  status         SolverStatus
+  seed           BigInt       @default(0)
+  objectiveScore Decimal?     @db.Decimal(16, 6)
+  durationMs     Int?
+  request        Json
+  response       Json?
+  diagnostics    Json?
+  createdAt      DateTime     @default(now())
+
+  revision PlanRevision?
+
+  @@index([mealPlanId])
+  @@index([status])
 }

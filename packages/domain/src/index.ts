@@ -31,11 +31,13 @@ export const NUTRIENT_KEYS = [
 
 export type NutrientKey = (typeof NUTRIENT_KEYS)[number];
 
-/** Per-nutrient optimization mode (product-spec §2.2). `disabled` !== `maximum` of 0. */
-export type NutrientMode = "disabled" | "minimum" | "target" | "maximum";
+/** Per-nutrient optimization mode (product-spec §2.2). DISABLED !== MAXIMUM of 0.
+ *  Casing matches the Prisma `NutrientMode` enum for clean DB interop. */
+export type NutrientMode = "DISABLED" | "MINIMUM" | "TARGET" | "MAXIMUM";
 
-/** Data-quality state for a stored nutrient value (product-spec §4). Missing !== zero. */
-export type DataQuality = "known" | "partial" | "missing" | "estimated" | "user_entered";
+/** Data-quality state for a stored nutrient value (product-spec §4). MISSING !== zero.
+ *  Casing matches the Prisma `DataQuality` enum. */
+export type DataQuality = "KNOWN" | "PARTIAL" | "MISSING" | "ESTIMATED" | "USER_ENTERED";
 
 /**
  * Scale a per-100g nutrient amount to `grams`. Returns `null` when the source
@@ -47,3 +49,6 @@ export function scalePer100g(per100g: number | null, grams: number): number | nu
   if (grams < 0) throw new Error("grams must be non-negative");
   return (per100g * grams) / 100;
 }
+
+export * from "./catalog";
+export * from "./validation";

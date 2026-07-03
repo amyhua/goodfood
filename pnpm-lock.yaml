@@ -115,10 +115,16 @@ importers:
 
   packages/db:
     dependencies:
+      '@goodfood/domain':
+        specifier: workspace:*
+        version: link:../domain
       '@prisma/client':
         specifier: ^6.2.1
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
     devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
       prisma:
         specifier: ^6.2.1
         version: 6.19.3(typescript@5.9.3)
@@ -133,6 +139,10 @@ importers:
         version: 3.2.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.5)
 
   packages/domain:
+    dependencies:
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
     devDependencies:
       typescript:
         specifier: ^5.7.2
