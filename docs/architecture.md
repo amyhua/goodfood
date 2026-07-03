@@ -11,6 +11,66 @@ pnpm + Turborepo monorepo · Next.js App Router (TS strict) + Tailwind · Neon P
 Python 3.12 + FastAPI + OR-Tools solver · Vercel (web) + containerized solver · Zod · Vitest ·
 pytest · Playwright.
 
+## System diagram
+
+```mermaid
+flowchart TD
+  subgraph Client
+    B[Browser — Next.js App Router UI]
+  end
+  subgraph Vercel[Next.js app on Vercel]
+    RH[Next.js route handlers<br/>Zod validation · candidate selection · proof recompute]
+  end
+  subgraph Data
+    PG[(Neon / Postgres<br/>via Prisma)]
+  end
+  subgraph Solver[Containerized service]
+    SV[Python FastAPI + OR-Tools solver]
+  end
+  subgraph External
+    FDC[USDA FoodData Central API]
+  end
+
+  B -->|HTTPS| RH
+  RH -->|SQL / Prisma| PG
+  RH -->|POST /solve| SV
+  RH -->|search / import| ADP[USDA FDC adapter + cache]
+  ADP -->|normalized foods cached| PG
+  ADP -->|rate-limited, retried, server-only| FDC
+  SV -->|selected foods + grams + diagnostics| RH
+  RH -->|independent TS proof recompute| RH
+```
+
+Three outward edges from the route handlers, exactly as required: **→ Neon/Postgres**, **→ Python
+solver**, **→ USDA FDC adapter/cache**. The USDA key and DB credentials live only server-side; the
+browser never sees them.
+
+## Data lineage — five separated representations
+
+The system keeps these five stages distinct (product rules 3–5). See
+[product-spec.md §10](product-spec.md#10-data-lineage-five-distinct-stages).
+
+```mermaid
+flowchart LR
+  RAW[1. Raw source<br/>verbatim FDC payloads] --> NORM[2. Normalized<br/>per-100g Food/FoodNutrient<br/>units · quality states]
+  PREF[3. User preferences<br/>profiles · nutrient modes · diets · bans · pantry] --> CAND
+  NORM --> CAND[Candidate selection]
+  CAND --> SIN[4a. Solver input<br/>candidate vectors + constraints]
+  SIN --> SOUT[4b. Solver output<br/>selected foods + grams + diagnostics]
+  SOUT --> PROOF[TS proof recompute]
+  NORM --> PROOF
+  PROOF --> SNAP[5. Immutable snapshot<br/>exact nutrient values at generation time]
+```
+
+- **Raw ≠ normalized:** raw FDC payloads are retained for traceability but never rendered; the UI
+  reads normalized per-100 g data.
+- **Preferences ≠ solver input:** preferences are user intent; solver input is the compiled candidate
+  set + constraint vector derived from them (banned/diet-filtered *before* the solver — rule 7).
+- **Solver output ≠ proof:** the solver returns **only** selected foods/grams; TypeScript independently
+  recomputes the nutrient proof and **rejects** solver output that fails verification.
+- **Snapshot ≠ live data:** a saved plan freezes the exact nutrient values used, so later food-data
+  edits never mutate historical plans (rule 5). Every `PlanRevision` is immutable + auditable.
+
 ## Product scope
 
 A meal planner that takes a full day's desired nutrition (default: recommended daily intake),
@@ -116,5 +176,11 @@ validates its request payloads. Nutrient proofs returned by the solver link back
 
 ## Decisions
 
-Record irreversible/architectural decisions here (ADR-style) or in `docs/decisions/` as they are
-made, and cross-link the corresponding Linear issue/project.
+Architectural decisions live as ADRs in [docs/adr/](adr/), cross-linked to their Linear issue/project.
+
+- [ADR-001 — Nutrition data source](adr/001-nutrition-data.md): USDA FDC canonical; Foundation/SR
+  Legacy prioritized; missing ≠ zero; raw payloads retained for provenance.
+- [ADR-002 — Optimization approach](adr/002-optimization.md): OR-Tools CP-SAT, gram-increment
+  portions, strict + diagnostic-relaxed modes, timeout ≠ infeasible, TS is the canonical proof.
+- [ADR-003 — Nutrition targets](adr/003-nutrition-targets.md): targets from FDA DV / NIH DRI keyed by
+  profile (distinct from food facts); disabled/minimum/target/maximum modes; tolerances & UL handling.

@@ -11,7 +11,7 @@ How to launch a queue: on your own machine via
 
 | Queue name | Date | Host | Linear parent issue | Session / tmux | Status |
 |------------|------|------|---------------------|----------------|--------|
-| _(none yet — your first phase queue will be registered here when you launch it)_ | — | — | — | — | — |
+| goodfood-build | 2026-07-03 | Elgin-1 | [GOO-14](https://linear.app/goodfoodapp/issue/GOO-14/queue-goodfood-build) | goodfood-goodfood-build | In Progress |
 
 ## Fields
 
