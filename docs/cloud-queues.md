@@ -12,7 +12,7 @@ How to launch a queue: on your own machine via
 | Queue name | Date | Host | Linear parent issue | Session / tmux | Status |
 |------------|------|------|---------------------|----------------|--------|
 | goodfood-build | 2026-07-03 | Elgin-1 | [GOO-14](https://linear.app/goodfoodapp/issue/GOO-14/queue-goodfood-build) | goodfood-goodfood-build | In Progress |
-| goodfood-followups | 2026-07-03 | elga-1 | [GOO-23](https://linear.app/goodfoodapp/issue/GOO-23/queue-goodfood-followups) | goodfood-goodfood-followups | In Progress |
+| goodfood-followups | 2026-07-03 | elga-1 | [GOO-23](https://linear.app/goodfoodapp/issue/GOO-23/queue-goodfood-followups) | goodfood-goodfood-followups | Complete |
 
 ## Fields
 
