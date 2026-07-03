@@ -18,6 +18,13 @@ This is an alternative to [claude.ai/code](cloud-run-template.md). The **prompt 
   uninterruptible run (see permission modes below).
 - **Same retrieval guarantee** — work is committed to GitHub + tracked in Linear regardless of session.
 
+## Registered hosts
+
+| Host | Tailscale IP | SSH | Status |
+|------|--------------|-----|--------|
+| **elga-1** | 100.73.101.78 | `ssh amy@elga-1` (key auth) | ✅ bootstrapped — Homebrew, node, pnpm, tmux, python@3.12, psql, Claude Code 2.1.x installed; repo cloned at `~/goodfood`; `.env` copied; Neon verified. **Remaining: `claude /login` (interactive, one-time).** |
+| nora-2 | 100.78.68.64 | ✗ `Permission denied (publickey)` | not accessible with current key/user — add the SSH key (or user) before it can be a runner |
+
 ## One-time setup on the Mac mini
 
 1. **Tailscale** — installed and logged in on both your laptop and the Mac mini (same tailnet). Find
