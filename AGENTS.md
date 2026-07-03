@@ -26,6 +26,8 @@ no validation, end-to-end, no interference) governs everything here too.
   are true (secrets stay gitignored). See CLAUDE.md §2/§3.
 - **A PRD per major stream.** Every service/subsystem/sizable feature area (its own Linear Project)
   gets a PRD Document before/as implementation begins, kept current. See CLAUDE.md §2.
+- **Every issue links to a Project + PRD.** No free-floating issues — each `GOO-N` is parented to a
+  Linear Project that has a PRD explaining it, cross-linked from the issue. See CLAUDE.md §2.
 
 ---
 

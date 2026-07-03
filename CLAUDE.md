@@ -100,6 +100,23 @@ Linear and committed to git**. No ask is done until both are true.
   its issue reflects reality **and** its changes are committed + pushed. `.env`/secrets stay
   gitignored — tracking/committing never means committing secrets.
 
+### 🔗 Every issue links to a Project + PRD (non-negotiable)
+
+Like the Lumirity model, **no issue floats free.** Every Linear issue `GOO-N` MUST be **parented to a
+Linear Project**, and that Project MUST have a **PRD** that explains it (what it is → why → how it
+fits → design). The issue therefore always links, one hop away, to a document a new reader can use to
+understand the work.
+
+- **On create, set `projectId`.** If no suitable Project exists yet, create it (with its PRD) first,
+  then create the issue under it. Auditing first and reusing an existing Project is the good outcome.
+- **The Project's PRD lives in the Project's content (or a parented PRD Document)** and is
+  cross-linked from the issue's `## Links`. A child issue inherits its parent's Project.
+- **Meta/process work counts too** — repo/agent-ops issues go under an "Agent Operations" Project;
+  infra/db/deploy issues go under the "Platform & Infrastructure" Project; product work goes under
+  its product Project. There is always a home.
+- This makes the PRD-per-major-stream rule below enforceable at the issue level: if an issue has no
+  Project+PRD to point at, the stream hasn't been framed yet — frame it first.
+
 ### 📄 A PRD is written for every major stream of work (non-negotiable)
 
 Every **major stream of work** — a service, subsystem, or sizable feature area (i.e. anything that
@@ -223,7 +240,7 @@ In: …   Out: …
 ## Acceptance / DoD
 <the bar; defer to §3>
 ## Links
-docs §: … · PR: … · Docs: <Linear document URLs>
+Project/PRD: <Linear project URL> · docs §: … · PR: … · Docs: <Linear document URLs>
 ```
 
 **Project (PRD / Tech-Spec)** — *explain, don't enumerate*: what it is → **why** it exists → **how it
@@ -232,13 +249,14 @@ fits** (one concrete example) → system design → milestones → key decisions
 ### Do / Don't
 
 - **DO** track every ask as a `GOO-N` issue and commit + push its output (with the `Issue ID` trailer).
+- **DO** parent every issue to a Project that has a PRD, and cross-link the PRD from the issue.
 - **DO** write a PRD Document for every major stream of work before/as it starts.
 - **DO** audit (read) before creating — reusing an existing project/milestone/issue is a good outcome.
 - **DO** keep documentation proportional to complexity, and record assumptions instead of asking.
 - **DON'T** delegate Linear writes to subagents — they hold no API key and can't write to Linear.
 - **DON'T** report an ask done while it's uncommitted, unpushed, or untracked in Linear.
-- **DON'T** start a major stream without its PRD, duplicate an existing project/milestone/issue, or
-  bury long API contracts in an issue.
+- **DON'T** create an issue with no Project (no free-floating issues), and don't start a major stream
+  without its PRD, duplicate an existing project/milestone/issue, or bury long API contracts in an issue.
 - **DON'T** let `docs/` and Linear disagree.
 
 ---
@@ -253,10 +271,10 @@ End every task with the binary verdict — exactly `DONE — all green` (with pa
 `NOT DONE — <red items>`. Under §0, `NOT DONE` is reserved for genuine unrecoverable failures; a
 missing default is not one — pick the standard default, note it, and drive to `DONE`.
 
-**Tracked & committed are DoD items.** An ask is not `DONE` until (a) its Linear issue `GOO-N`
-reflects shipped reality, (b) its changes are **committed with an `Issue ID: GOO-N` trailer and
-pushed**, and (c) for a major stream, its **PRD Document exists and is current** (see §2). All three
-are checked as part of the verdict.
+**Tracked & committed are DoD items.** An ask is not `DONE` until (a) its Linear issue `GOO-N` is
+**parented to a Project whose PRD exists and is current** and reflects shipped reality, (b) its
+changes are **committed with an `Issue ID: GOO-N` trailer and pushed**, and (c) for a major stream,
+its **PRD explains the stream** (see §2). All three are checked as part of the verdict.
 
 Once a canonical `docs/definition-of-done.md` exists, defer to it for the full checklist; until then,
 this section is the contract.
