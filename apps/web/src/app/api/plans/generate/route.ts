@@ -2,6 +2,7 @@ import { prisma } from "@goodfood/db";
 import { generateSettingsSchema } from "@/server/plans/settings";
 import { ProofMismatchError, generatePlan } from "@/server/plans/generate";
 import { resolveActor } from "@/server/auth/actor";
+import { gatePlanCreation } from "@/server/monetization/service";
 import { solverClient } from "@/lib/solver";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,14 @@ export async function POST(req: Request): Promise<Response> {
   }
   try {
     const actor = await resolveActor();
+    // Usage gate (F10) — a no-op unless monetization is enabled + user over free limit.
+    const gate = await gatePlanCreation(actor.userId);
+    if (!gate.allowed) {
+      return Response.json(
+        { error: gate.reason, upgrade: { priceMonthlyUsd: gate.priceMonthlyUsd, limit: gate.limit } },
+        { status: 402 },
+      );
+    }
     const out = await generatePlan(prisma, solverClient(), { ...parsed.data, userId: actor.userId });
     return Response.json(out, { status: out.feasible ? 201 : 200 });
   } catch (err) {

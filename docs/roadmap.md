@@ -48,6 +48,27 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F10 (optional) — Monetization (OFF by default, configurable) — GOO-33 — 2026-07-03
+**Changed:** docs/adr/004-monetization.md. schema — User.premiumUntil + stripe ids + AppSetting
+singleton (migration `20260703144919_f10_monetization`, deployed no-reset). server/monetization —
+config (DEFAULT_CONFIG **enabled:false**, configFromEnv, mergeConfig — all pure), pure evaluateGate
+(disabled→always allow, premium→allow, else monthly limit), service (getMonetizationConfig = env +
+DB override, monthlyPlanCount metering, gatePlanCreation). Generate route returns 402 w/ upgrade info
+ONLY when enabled + non-premium + over limit. Stripe-ready /api/billing/checkout (inert without keys).
+AdSlot (off unless NEXT_PUBLIC_ADS_ENABLED). Admin: requireAdmin (ADMIN_EMAILS), /api/admin/settings
+GET/PUT, /admin/settings page to view/flip at runtime. .env.example entries (all off).
+**Migrations:** `20260703144919_f10_monetization`. Applied to Neon.
+**Tests run:** lint OK; typecheck 9/9; unit 44 passed (+8 config/gate: default-off, env override, gate
+matrix); build OK (admin/billing routes); Playwright 45. RUN_DB_INTEGRATION monetization 3 passed
+(disabled→always allowed; enabled blocks free-over-limit but not premium; flip-off re-opens). Verified
+the AppSetting singleton is absent after tests → **live default stays OFF / fully free**.
+**Remaining gaps:** no live Stripe keys/checkout session creation or webhook (scaffold only); list
+metering wired in config but enforced only for plans; no proration/cancel flow.
+**Migration notes:** app is 100% free unless MONETIZATION_ENABLED=true (or admin flips it). Set
+ADMIN_EMAILS to reach /admin/settings; STRIPE_SECRET_KEY+STRIPE_PRICE_ID to arm billing.
+**Manual QA:** default → generate unlimited; set ADMIN_EMAILS + sign in → /admin/settings → enable +
+set limit 1 → second generate returns 402; flip off → unlimited again.
+
 ### Prompt F9 (optional) — Discord community — GOO-32 — 2026-07-03
 **Changed:** docs/community/discord-blueprint.md (channels, roles, rules, onboarding, owner steps).
 lib/discord.ts — buildBoardAnnouncement (pure), isDiscordConfigured, best-effort postToDiscord;
