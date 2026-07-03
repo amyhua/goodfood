@@ -81,18 +81,29 @@ Secrets live in a gitignored `.env` (never committed). Database changes go throu
 
 ## Running long work queues in the cloud
 
-You can hand off a long, ordered sequence of implementation phases to a **cloud session at
-[claude.ai/code](https://claude.ai/code)** — it runs in an Anthropic-managed VM that **keeps working
-after you close your laptop and kill the terminal**, and you retrieve it later from any device.
+You can hand off a long, ordered sequence of implementation phases to a runner that **keeps working
+after you close your laptop**, then retrieve it later. Two options — the prompt is identical, only the
+launch differs:
+
+- **Your own always-on Mac (Tailscale + tmux)** — free, unmetered, full trust, `.env` already local.
+  See [docs/self-hosted-runs.md](docs/self-hosted-runs.md). *(Recommended when you have the hardware.)*
+- **Cloud session at [claude.ai/code](https://claude.ai/code)** — Anthropic-managed VM, nothing to
+  host. See below and [docs/cloud-run-template.md](docs/cloud-run-template.md).
+
+Both run in an environment that **keeps working after you close your laptop and kill the terminal**,
+and you retrieve the result later from any device.
 
 **Why retrieval is guaranteed here:** every phase is **committed to GitHub and tracked in Linear**
 (`Issue ID: GOO-N`). So even if the cloud session ends, the work is durable — `git pull` and open the
 queue's parent Linear issue to see exactly what shipped and what's left. The session is a convenience;
 the repo + Linear are the source of truth.
 
-- **Launch a queue:** fill in and send the master prompt in
-  [docs/cloud-run-template.md](docs/cloud-run-template.md). It runs autonomously, phase by phase,
-  each phase tracked + committed + tested, per this repo's [CLAUDE.md](CLAUDE.md) autonomy contract.
+- **Launch a queue:** fill in the master prompt in
+  [docs/cloud-run-template.md](docs/cloud-run-template.md), then either run
+  `./scripts/run-queue.sh <name> phase-prompts.md` on your always-on Mac
+  ([self-hosted guide](docs/self-hosted-runs.md)) or paste it into claude.ai/code. It runs
+  autonomously, phase by phase, each phase tracked + committed + tested, per this repo's
+  [CLAUDE.md](CLAUDE.md) autonomy contract.
 - **Register each queue:** record it in [docs/cloud-queues.md](docs/cloud-queues.md) (name, date,
   Linear parent issue, session URL, status) so you can find and resume it later.
 - **Retrieve later:** monitor at claude.ai/code or the mobile app, pull it back with
