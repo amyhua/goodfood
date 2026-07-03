@@ -79,6 +79,27 @@ migrations, run) will be filled in as the scaffolding and each service land — 
 Secrets live in a gitignored `.env` (never committed). Database changes go through Prisma
 **migrations** — databases are never reset or destroyed.
 
+## Running long work queues in the cloud
+
+You can hand off a long, ordered sequence of implementation phases to a **cloud session at
+[claude.ai/code](https://claude.ai/code)** — it runs in an Anthropic-managed VM that **keeps working
+after you close your laptop and kill the terminal**, and you retrieve it later from any device.
+
+**Why retrieval is guaranteed here:** every phase is **committed to GitHub and tracked in Linear**
+(`Issue ID: GOO-N`). So even if the cloud session ends, the work is durable — `git pull` and open the
+queue's parent Linear issue to see exactly what shipped and what's left. The session is a convenience;
+the repo + Linear are the source of truth.
+
+- **Launch a queue:** fill in and send the master prompt in
+  [docs/cloud-run-template.md](docs/cloud-run-template.md). It runs autonomously, phase by phase,
+  each phase tracked + committed + tested, per this repo's [CLAUDE.md](CLAUDE.md) autonomy contract.
+- **Register each queue:** record it in [docs/cloud-queues.md](docs/cloud-queues.md) (name, date,
+  Linear parent issue, session URL, status) so you can find and resume it later.
+- **Retrieve later:** monitor at claude.ai/code or the mobile app, pull it back with
+  `claude --teleport <session-id>`, or just `git pull` + read the Linear parent issue.
+- **Prerequisite:** add `LINEAR_API_KEY` (and `LINEAR_TEAM_ID`) as **cloud environment secrets** —
+  `.env` is gitignored and not cloned into the cloud VM.
+
 ## Project tracking
 
 Work is tracked in Linear (workspace **GoodFoodApp**, team key **`GOO`**) at
