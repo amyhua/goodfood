@@ -48,6 +48,24 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F5 (optional) — React Native iOS app (Expo MVP) — GOO-28 — 2026-07-03
+**Changed:** new `apps/mobile` Expo (React Native) project reusing the goodfood REST API — App.tsx
+navigation (auth gate → Home → Planner/Pantry/Shopping), src/api.ts (cookie-session client),
+config/theme, screens Auth / Home / Planner (generate + proof, missing→"—") / Pantry (AsyncStorage) /
+Shopping (saved lists). Config: app.json (bundle app.goodfood.mobile) + eas.json (simulator + TestFlight
+profiles) + tsconfig + README with run + external steps. **Excluded from the pnpm workspace**
+(`!apps/mobile`), ESLint ignore, and .prettierignore so its React-18/RN graph never touches the web
+app's React 19 or the monorepo gates.
+**Tests run (monorepo, unaffected):** pnpm install still 7 workspace projects (mobile excluded);
+lint OK; typecheck 9/9; test 5/5; build 5/5.
+**Deferred (external prerequisites, logged in apps/mobile/README):** this queue host has no iOS
+Simulator, no Expo toolchain, and no Apple Developer credentials — so mobile **runtime/device
+verification is done on a developer machine**, not here. Required external steps: `npm install` in
+apps/mobile, `npm run ios` (Xcode Simulator), EAS build + Apple Developer signing/TestFlight, real
+icon/splash assets.
+**Manual QA (dev machine):** cd apps/mobile → npm install → EXPO_PUBLIC_API_URL=<deploy> npm run ios →
+sign in, generate a plan, view proof.
+
 ### Prompt F4 (optional) — Landing page — GOO-27 — 2026-07-03
 **Changed:** rewrote `/` into a marketing landing — hero + CTAs (planner needs no account / free
 signup), feature grid (proof, absolute exclusions, pantry/shopping, save+share), a "Free, and open

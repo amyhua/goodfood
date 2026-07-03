@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "goodfood",
+    "slug": "goodfood",
+    "scheme": "goodfood",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.goodfood.mobile"
+    },
+    "android": {
+      "package": "app.goodfood.mobile"
+    },
+    "extra": {
+      "apiUrl": "https://goodfood.app"
+    }
+  }
+}

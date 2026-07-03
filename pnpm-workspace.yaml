@@ -1,6 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+  # apps/mobile is a standalone Expo (React Native) project on React 18 / RN — it installs
+  # on its own (see apps/mobile/README.md). Excluded so its dependency graph never conflicts
+  # with the web app's React 19 or the monorepo gates.
+  - "!apps/mobile"
 
 allowBuilds:
   '@prisma/client': set this to true or false

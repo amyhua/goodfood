@@ -16,6 +16,8 @@ export default tseslint.config(
       "**/*.config.*",
       "**/next-env.d.ts",
       "**/solver-schema.ts",
+      // Standalone Expo app — installs + lints on its own (React 18 / RN toolchain).
+      "apps/mobile/**",
     ],
   },
   js.configs.recommended,
