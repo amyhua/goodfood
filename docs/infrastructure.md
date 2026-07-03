@@ -38,15 +38,30 @@ only ever run forward — **never reset or destroy the database** (CLAUDE.md §4
 - **Preview / Production (Vercel)** — set vars in the Vercel project; use a Neon
   production branch. Neon's branching gives isolated preview DBs per Vercel preview if desired.
 
-## What YOU need to set up now
+## Neon branch strategy
 
-See the checklist in the current session / the Linear infra issue. In short:
+Neon gives us two branches; the database name on each is `neondb`:
 
-1. **Neon** — create an account + a project named `goodfood`; copy the **pooled** and **direct**
-   connection strings → `DATABASE_URL`, `DIRECT_URL`.
-2. **USDA FoodData Central** — request a free API key at
-   <https://fdc.nal.usda.gov/api-key-signup.html> → `FDC_API_KEY`.
-3. **Vercel** — create an account and a project linked to the `amyhua/goodfood` GitHub repo (import;
-   don't deploy yet — no app to build until the scaffold phase).
-4. Paste the keys back so they can be written to `.env` (local) and added to claude.ai/code secrets +
-   Vercel env vars. Deferred (do later): solver host choice, Supabase.
+- **`test` branch** → **local dev** (`.env` `DATABASE_URL` / `DIRECT_URL`).
+- **`production` branch** → **Vercel production** env vars.
+
+Host ids: test `ep-patient-union-atl4a2xd` (+ `-pooler`), production `ep-mute-truth-atwloikz`
+(+ `-pooler`). Credentials live only in `.env` / Vercel env / cloud secrets — never in this file.
+
+## Provisioning status
+
+| Item | Status | Detail |
+|------|--------|--------|
+| Neon account + branches (`test`, `production`) | ✅ done | connection verified — PostgreSQL 18.4, db `neondb`, pooled + direct both reachable |
+| `DATABASE_URL` / `DIRECT_URL` (test) in local `.env` | ✅ done | pooled = runtime, direct = migrations |
+| Vercel project | ✅ imported | id `prj_erhiVTB5CmbDihbqT6pgnjxnV6tG`, domain `goodfood-silk-seven.vercel.app` (not deployed yet — nothing to build until scaffold) |
+| USDA FDC API key | ⚠️ pending | using `DEMO_KEY` placeholder (30 req/hr). Real key needed — the "Account ID" provided is **not** the api.data.gov key |
+| Cloud/Vercel secret propagation | ⏳ todo | add the same vars to claude.ai/code env secrets + Vercel env vars |
+| Prisma schema + first migration | ⏳ todo | scaffold phase |
+| Solver host · Supabase | 💤 deferred | decided when their phases land |
+
+## Loading `.env` in scripts (gotcha)
+
+The Neon URLs contain `&`/`?`, so **`source .env` breaks** in bash. Read a value explicitly instead:
+`DATABASE_URL=$(grep '^DATABASE_URL=' .env | cut -d= -f2-)`. Prisma/Next.js load `.env` natively and
+are unaffected.
