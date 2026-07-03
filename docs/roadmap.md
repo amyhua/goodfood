@@ -36,6 +36,7 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 | Phase | Linear | State | Summary |
 |-------|--------|-------|---------|
+| 6 — Plan API & persistence | [GOO-22](https://linear.app/goodfoodapp/issue/GOO-22) | Done | /api/plans/* generate/get/save/duplicate/proof, candidate selection, independent proof verify, immutable revisions |
 | 5 — Solver service | [GOO-21](https://linear.app/goodfoodapp/issue/GOO-21) | Done | FastAPI + OR-Tools CP-SAT /solve, strict+diagnostic, locks/bans/seed, OpenAPI->TS client |
 | 4 — Proof engine | [GOO-20](https://linear.app/goodfoodapp/issue/GOO-20) | Done | Pure-TS nutrient calc, meal/day/week aggregation, honest status vs modes/tolerance, contributors, proof shape |
 | 3 — USDA ingestion | [GOO-18](https://linear.app/goodfoodapp/issue/GOO-18) | Done | Typed FDC client (retry/cache/timeout), normalizer, idempotent import, /api/foods/*, 100-food live catalog |
@@ -46,6 +47,23 @@ Every requested user-facing feature from the phase queue appears above and is tr
 ## Phase log
 
 <!-- Prepend each completed phase using the template below. -->
+
+### Prompt 6 — Plan-generation API & persistence — GOO-22 — 2026-07-03
+**Changed:** apps/web/src/server/plans (settings.ts Zod, candidates.ts selection+bans+diet+ranking,
+generate.ts orchestrator+persistence+proof verify, read.ts serializer), src/lib/solver.ts,
+5 routes under /api/plans, candidate/settings/generate tests. Solver: TARGET made soft (objective),
+only MINIMUM/MAXIMUM hard (ADR-002) so real profiles stay feasible.
+**Migrations:** none.
+**Tests run:** lint OK; typecheck 9/9; pnpm test OK (5 pkgs, web 15 CI-safe); build OK (5 routes);
+solver pytest 10. RUN_DB_INTEGRATION=1 (+solver): generate e2e 3 passed (verified/persisted/reloadable
+plan, duplicate, snapshot stability). Live HTTP flow: generate=>feasible 3 meals/21-nutrient proof
+(protein MET), get/save/duplicate/proof all 2xx.
+**Remaining gaps:** meal-role assignment is uniform (all candidates all meals) until Prompt 8/10;
+diet filtering acts on tags which USDA foods gain in Prompt 8; single-day only (weekly in Prompt 10).
+**Migration notes:** generate needs SOLVER_URL reachable; integration tests gated behind
+RUN_DB_INTEGRATION=1 + a running solver. Energy showing UNKNOWN/PARTIAL when a contributor lacks
+energy data is correct honesty (invariant 4).
+**Manual QA:** POST /api/plans/generate {seed} then GET/save/duplicate/proof.
 
 ### Prompt 5 — Optimization solver service — GOO-21 — 2026-07-03
 **Changed:** services/solver (app/models.py Pydantic contract, app/solver.py CP-SAT strict+diagnostic,

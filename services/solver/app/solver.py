@@ -168,7 +168,10 @@ def _run_model(req, foods, required_meals, inc, soft: bool, started: float) -> S
     violations_meta: list[tuple[str, str, float]] = []  # (key, kind, target)
 
     for c in req.nutrient_constraints:
-        if c.mode == NutrientMode.DISABLED:
+        # Only MINIMUM (floor) and MAXIMUM (ceiling) are HARD constraints. TARGET is
+        # soft — optimized toward via the deviation objective below (ADR-002), so a
+        # realistic multi-nutrient profile stays feasible while still landing in range.
+        if c.mode not in (NutrientMode.MINIMUM, NutrientMode.MAXIMUM):
             continue
         lo, hi = _band(c)
         expr = total_expr(c.key)
