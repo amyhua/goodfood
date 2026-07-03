@@ -48,6 +48,20 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F11 (optional) — Android app (Expo parity) — GOO-34 — 2026-07-03
+**Changed:** apps/mobile — app.json android block (package app.goodfood.mobile, versionCode,
+edgeToEdgeEnabled, adaptive-icon bg, INTERNET permission), eas.json android profiles (apk for
+dev/preview, app-bundle for production, autoIncrement) + Play submit config, package.json
+build:android:apk/play scripts, README Android run + Play-Store external steps. Cross-platform RN
+screens give inherent UX parity.
+**Tests run:** monorepo gates unaffected (apps/mobile excluded from the pnpm workspace) — lint/
+typecheck/test/build stayed green from F10.
+**Deferred (external prerequisites, logged in README):** no Android SDK/emulator or Play signing here
+— Android runtime + release verification is done on a developer machine. Steps: Play Console account,
+release keystore (`eas credentials`), Play service-account JSON, icon/feature-graphic assets, emulator/
+device.
+**Manual QA (dev machine):** cd apps/mobile → npm install → npm run android; npm run build:android:apk.
+
 ### Prompt F10 (optional) — Monetization (OFF by default, configurable) — GOO-33 — 2026-07-03
 **Changed:** docs/adr/004-monetization.md. schema — User.premiumUntil + stripe ids + AppSetting
 singleton (migration `20260703144919_f10_monetization`, deployed no-reset). server/monetization —

@@ -12,7 +12,13 @@
       "bundleIdentifier": "app.goodfood.mobile"
     },
     "android": {
-      "package": "app.goodfood.mobile"
+      "package": "app.goodfood.mobile",
+      "versionCode": 1,
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#166534"
+      },
+      "permissions": ["INTERNET"]
     },
     "extra": {
       "apiUrl": "https://goodfood.app"

@@ -9,7 +9,9 @@
     "android": "expo run:android",
     "typecheck": "tsc --noEmit",
     "build:ios:sim": "eas build --platform ios --profile preview --local",
-    "build:ios:testflight": "eas build --platform ios --profile production"
+    "build:ios:testflight": "eas build --platform ios --profile production",
+    "build:android:apk": "eas build --platform android --profile preview",
+    "build:android:play": "eas build --platform android --profile production"
   },
   "dependencies": {
     "expo": "~52.0.0",
