@@ -36,6 +36,7 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 | Phase | Linear | State | Summary |
 |-------|--------|-------|---------|
+| 3 — USDA ingestion | [GOO-18](https://linear.app/goodfoodapp/issue/GOO-18) | Done | Typed FDC client (retry/cache/timeout), normalizer, idempotent import, /api/foods/*, 100-food live catalog |
 | 2 — Nutrition & plan schema | [GOO-17](https://linear.app/goodfoodapp/issue/GOO-17) | Done | 21-model Prisma schema + CHECK invariants, seed, domain catalog/validation, DB integration tests |
 | 1 — Monorepo & gates | [GOO-16](https://linear.app/goodfoodapp/issue/GOO-16) | Done | pnpm/Turbo monorepo, CI, health endpoints, Tailwind shell, all gates green |
 | 0 — Product contract | [GOO-15](https://linear.app/goodfoodapp/issue/GOO-15) | Done | product-spec, architecture, roadmap, ADRs 001–003, req→test matrix |
@@ -43,6 +44,25 @@ Every requested user-facing feature from the phase queue appears above and is tr
 ## Phase log
 
 <!-- Prepend each completed phase using the template below. -->
+
+### Prompt 3 — USDA FoodData Central ingestion — GOO-18 — 2026-07-03
+**Changed:** new packages/usda (client.ts retry/backoff/timeout/cache, normalize.ts per-100g +
+alias/unit conversion, import.ts idempotent upsert, curated.ts ~100 staples, scripts/import-curated.ts,
+types/units, fixture + normalize/client/import tests); apps/web (/api/foods/search, /api/foods/import,
+/api/foods/[id], lib/usda.ts, next.config transpilePackages, vitest @ alias, search route test).
+**Migrations:** none (uses Prompt 2 schema).
+**Tests run:** `pnpm lint` ✓ · `typecheck` 9/9 ✓ · `pnpm test` ✓ (5 pkgs; USDA/DB integration
+auto-skipped, zero live calls) · `RUN_DB_INTEGRATION=1` usda import idempotency ✓ · normalize (7) +
+client mocked (5) ✓. Live: curated import populated **100 USDA-backed foods**; verified salmon
+(protein 11.97 g, EPA+DHA 463 mg summed 1278+1272, iodine/choline MISSING≠0), kale (vit C 93.4 mg),
+wheat germ oil (vit E 149.4 mg) — all source-backed.
+**Remaining gaps:** search-term→FDC resolution picks the top match (a few imperfect, e.g. olive oil);
+diet tags on USDA foods derived in Prompt 8; proof engine consumes this data in Prompt 4. 5 curated
+terms 404'd on FDC detail (stale ids) and were skipped (logged).
+**Migration notes:** none. Populate catalog with `USDA_FDC_API_KEY=... pnpm --filter @goodfood/usda
+import:curated` (LOCAL/DEV only — never in CI). USDA client `fetch` is injectable so tests never hit
+the network.
+**Manual QA:** `GET /api/foods/search?q=salmon`, `POST /api/foods/import {fdcId}`, `GET /api/foods/:id`.
 
 ### Prompt 2 — Canonical nutrition & plan schema — GOO-17 — 2026-07-03
 **Changed:** packages/db/prisma/schema.prisma (21 models + 12 enums), migration

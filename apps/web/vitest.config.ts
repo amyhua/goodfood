@@ -8,6 +8,7 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.ts"],
     alias: {
       "server-only": fileURLToPath(new URL("./test/server-only-stub.ts", import.meta.url)),
+      "@/": fileURLToPath(new URL("./src/", import.meta.url)),
     },
   },
 });

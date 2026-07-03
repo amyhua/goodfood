@@ -1,0 +1,26 @@
+{
+  "fdcId": 999001,
+  "description": "Fixture Fish, cooked (SYNTHETIC TEST)",
+  "dataType": "Foundation",
+  "foodClass": "FinalFood",
+  "foodCategory": "Finfish",
+  "publicationDate": "2024-01-01",
+  "foodNutrients": [
+    { "nutrient": { "id": 1008, "number": "208", "name": "Energy", "unitName": "kcal" }, "amount": 206 },
+    { "nutrient": { "id": 1062, "number": "268", "name": "Energy", "unitName": "kJ" }, "amount": 862 },
+    { "nutrient": { "id": 1003, "number": "203", "name": "Protein", "unitName": "g" }, "amount": 22.1 },
+    { "nutrient": { "id": 1004, "number": "204", "name": "Total lipid (fat)", "unitName": "g" }, "amount": 12.4 },
+    { "nutrient": { "id": 1109, "number": "323", "name": "Vitamin E (alpha-tocopherol)", "unitName": "mg" }, "amount": 3.5 },
+    { "nutrient": { "id": 1180, "number": "421", "name": "Choline, total", "unitName": "mg" }, "amount": 95 },
+    { "nutrient": { "id": 1190, "number": "435", "name": "Folate, DFE", "unitName": "µg" }, "amount": 26 },
+    { "nutrient": { "id": 1106, "number": "320", "name": "Vitamin A, RAE", "unitName": "µg" }, "amount": 12 },
+    { "nutrient": { "id": 1114, "number": "328", "name": "Vitamin D (D2 + D3)", "unitName": "µg" }, "amount": 13.1 },
+    { "nutrient": { "id": 1278, "number": "629", "name": "PUFA 20:5 n-3 (EPA)", "unitName": "g" }, "amount": 0.69 },
+    { "nutrient": { "id": 1272, "number": "621", "name": "PUFA 22:6 n-3 (DHA)", "unitName": "g" }, "amount": 1.46 },
+    { "nutrient": { "id": 1092, "number": "306", "name": "Potassium, K", "unitName": "mg" }, "amount": 384 }
+  ],
+  "foodPortions": [
+    { "portionDescription": "1 fillet", "modifier": "fillet", "gramWeight": 154, "amount": 1 },
+    { "portionDescription": null, "modifier": "oz", "gramWeight": 28.35, "amount": 1 }
+  ]
+}
