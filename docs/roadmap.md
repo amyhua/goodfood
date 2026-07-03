@@ -48,6 +48,30 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F13 (optional) — Content team posts + moderation system — GOO-36 — 2026-07-03
+**Changed:** schema — ContentState + ModerationAction + ModeratorApplicationStatus enums,
+User.isModerator, ContentPost + ModerationEvent (audit) + ModeratorApplication (migration
+`20260703150133_f13_moderation`, deployed no-reset). server/moderation — pluggable safety checker
+(deterministic heuristic default: medical-overclaim/unsafe/spam, configurable ruleset, logged
+rationale + score; LLM-swappable via checkContentSafety), lifecycle (createDraft, submitForReview runs
+safety + logs SUBMIT event, moderate approve/reject/takedown/flag records ModerationEvent), listQueue
+(no author PII), listApproved, auditTrail; moderator apply/list/decide. Guards: requireModerator (admin
+OR isModerator), owner promotion via requireAdmin. Routes: /api/content(+/[id]/submit),
+/api/moderation/queue + /[id] (PUT decide, GET audit), /api/moderators/apply, /api/admin/moderators.
+UI: /moderation queue, /content/submit, /moderators/apply, /admin/moderators. db package now exports
+the Prisma type.
+**Migrations:** `20260703150133_f13_moderation`. Applied to Neon.
+**Tests run:** lint OK; typecheck 9/9; unit 49 passed (+5 safety heuristic matrix); build OK
+(content/moderation/moderator routes); Playwright 45. RUN_DB_INTEGRATION moderation 3 passed
+(draft→pending w/ safety + SUBMIT event→approve, audit trail [SUBMIT,APPROVE], only-approved published,
+auto-flag unsafe, moderator apply→owner promote sets isModerator).
+**Remaining gaps:** safety pre-check is the heuristic by default (real LLM is a drop-in via
+checkContentSafety); board-post moderation (F8) still uses report+takedown, not the full queue;
+content-team posts aren't yet surfaced on a public /content page beyond the API.
+**Migration notes:** moderators = ADMIN_EMAILS or promoted users; owner promotion needs ADMIN_EMAILS.
+**Manual QA:** /content/submit → submit (auto safety shown); as moderator at /moderation → approve;
+/moderators/apply → owner promotes at /admin/moderators.
+
 ### Prompt F12 (optional) — Practitioner content & partnerships — GOO-35 — 2026-07-03
 **Changed:** schema — UserRole + PractitionerStatus enums, User.role, PractitionerProfile (migration
 `20260703145617_f12_practitioners`, deployed no-reset). server/practitioners — applyPractitioner

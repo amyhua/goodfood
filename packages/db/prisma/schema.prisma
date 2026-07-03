@@ -45,6 +45,31 @@ enum PractitionerStatus {
   REJECTED
 }
 
+/// Moderation lifecycle of a content-team post (F13).
+enum ContentState {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  TAKEN_DOWN
+}
+
+/// A recorded moderation action (F13 audit trail).
+enum ModerationAction {
+  SUBMIT
+  APPROVE
+  REJECT
+  TAKEDOWN
+  FLAG
+}
+
+/// Community-moderator application state (F13).
+enum ModeratorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 /// Data-quality state of a stored nutrient value (product-spec §4). MISSING != zero.
 enum DataQuality {
   KNOWN
@@ -164,6 +189,8 @@ model User {
   stripeSubscriptionId String?
   /// Account role (F12). MEMBER by default; a practitioner role is set only on verification.
   role                 UserRole  @default(MEMBER)
+  /// Community-moderator flag (F13). Granted by the owner; scoped to moderation, no user-data access.
+  isModerator          Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -182,8 +209,59 @@ model User {
   boardSaves             BoardSave[]
   boardReports           BoardReport[]
   practitionerProfile    PractitionerProfile?
+  contentPosts           ContentPost[]           @relation("ContentAuthor")
+  moderationEvents       ModerationEvent[]        @relation("ModerationActor")
+  moderatorApplication   ModeratorApplication?
 
   @@index([isDemo])
+}
+
+/// A content-team post that must clear moderation before it can be highlighted/published (F13).
+/// safetyJson stores the automated pre-check result (flagged, categories, rationale, score).
+model ContentPost {
+  id         String            @id @default(cuid())
+  authorId   String
+  author     User              @relation("ContentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  title      String
+  body       String
+  state      ContentState      @default(DRAFT)
+  safetyJson Json?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  events ModerationEvent[]
+
+  @@index([state])
+  @@index([authorId])
+}
+
+/// Immutable audit record of every moderation action on a content post (F13).
+model ModerationEvent {
+  id        String           @id @default(cuid())
+  postId    String
+  post      ContentPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User             @relation("ModerationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  action    ModerationAction
+  note      String?
+  createdAt DateTime         @default(now())
+
+  @@index([postId])
+}
+
+/// Application to become a community moderator (F13). Owner-reviewed; approval sets User.isModerator.
+model ModeratorApplication {
+  id           String                     @id @default(cuid())
+  userId       String                     @unique
+  user         User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  motivation   String
+  experience   String
+  availability String
+  status       ModeratorApplicationStatus @default(PENDING)
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  @@index([status])
 }
 
 /// A practitioner's application + verification record (F12). One per user. status VERIFIED +

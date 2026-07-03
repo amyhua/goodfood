@@ -15,3 +15,4 @@ export const prisma: PrismaClient =
   globalForPrisma.prisma ?? (globalForPrisma.prisma = createPrismaClient());
 
 export { PrismaClient } from "@prisma/client";
+export type { Prisma } from "@prisma/client";
