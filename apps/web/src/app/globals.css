@@ -10,3 +10,33 @@
 :root {
   color-scheme: light dark;
 }
+
+/* Prevent accidental horizontal scroll on small screens (F1). */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* Print flows (F1): drop app chrome, force light ink on white, keep list items whole. */
+@media print {
+  @page {
+    margin: 1.5cm;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  /* Hide the responsive nav shell so only the sheet content prints. */
+  header,
+  aside,
+  nav[aria-label="Primary"] {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  li,
+  section {
+    break-inside: avoid;
+  }
+}

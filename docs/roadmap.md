@@ -48,6 +48,30 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F1 — Mobile-friendly design and usage — GOO-24 — 2026-07-03
+**Queue:** goodfood-followups ([GOO-23](https://linear.app/goodfoodapp/issue/GOO-23)). First UI phase:
+the base build reached only Prompt 6 (APIs, no UI), so F1 builds the core surfaces mobile-first
+rather than retrofitting.
+**Changed:** apps/web — responsive `AppShell` (mobile bottom tab bar + desktop sidebar, ≥44px targets),
+`/planner` (collapsible `NutrientRail` + `MealList` `<details>` + responsive `ProofTable` table→cards),
+`/foods` (`FoodSearch` client), `/pantry` (`Pantry`, localStorage), `/shopping` (`ShoppingList`,
+pantry subtraction + print), new home page, print + no-overflow CSS in globals.css, `viewport` export.
+`lib/plan-view.ts` = shared view model: `buildSamplePlan` runs the domain's clearly-labeled
+SYNTHETIC_FOODS through the real `buildDayProof` engine (honest proof, missing≠0, no live solver/DB),
+plus `serializedToPlanView` for real persisted plans and `aggregateShopping`. Playwright: added
+iPhone-12 + Pixel-5 projects and `e2e/mobile.spec.ts`.
+**Migrations:** none.
+**Tests run:** lint OK; typecheck 9/9; pnpm test OK (web 21 passed incl. 6 new plan-view unit tests);
+build OK (5 UI routes); Playwright 30 passed across chromium + iPhone-12 + Pixel-5 (no horizontal
+overflow on /,/planner,/foods,/pantry,/shopping; bottom-nav ≥44px on mobile; sample proof renders;
+meals collapse; rail collapses).
+**Remaining gaps:** pantry is device-local (DB-backed per-user pantry comes with F2 auth); planner
+Generate needs a live SOLVER_URL — offline it falls back to the honest sample; shopping uses the
+sample plan until per-user saved plans (F2) wire in.
+**Migration notes:** run `pnpm exec playwright install chromium webkit` before E2E. No schema/env change.
+**Manual QA:** open /planner (sample), collapse a meal, resize to 375px — no overflow; add a pantry
+item then open /shopping and toggle "Subtract pantry"; Print.
+
 ### Prompt 6 — Plan-generation API & persistence — GOO-22 — 2026-07-03
 **Changed:** apps/web/src/server/plans (settings.ts Zod, candidates.ts selection+bans+diet+ranking,
 generate.ts orchestrator+persistence+proof verify, read.ts serializer), src/lib/solver.ts,

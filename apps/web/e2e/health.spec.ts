@@ -7,8 +7,8 @@ test("health endpoint reports ok", async ({ request }) => {
   expect(body.status).toBe("ok");
 });
 
-test("dashboard renders the app name and progress", async ({ page }) => {
+test("home renders the app name and entry points", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Nutrition meal planner" })).toBeVisible();
-  await expect(page.getByText("Build progress")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open the planner" })).toBeVisible();
 });
