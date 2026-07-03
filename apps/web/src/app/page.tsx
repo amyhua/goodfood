@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { JsonLd } from "@/components/JsonLd";
 import { appBaseUrl } from "@/lib/app-url";
 
 const GITHUB_URL = "https://github.com/amyhua/goodfood";
@@ -36,9 +37,35 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title, description },
 };
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      name: "goodfood",
+      url: appBaseUrl(),
+      sameAs: [GITHUB_URL],
+    },
+    {
+      "@type": "WebSite",
+      name: "goodfood",
+      url: appBaseUrl(),
+      description,
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "goodfood",
+      applicationCategory: "HealthApplication",
+      operatingSystem: "Web",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+  ],
+};
+
 export default function LandingPage() {
   return (
     <main className="mx-auto max-w-4xl px-5 py-12 sm:py-20">
+      <JsonLd data={structuredData} />
       {/* Hero */}
       <section aria-labelledby="hero-heading">
         <span className="inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/JsonLd";
 import { MealList } from "@/components/MealList";
 import { NutrientRail } from "@/components/NutrientRail";
 import { ProofTable } from "@/components/ProofTable";
@@ -44,8 +45,24 @@ export default async function SharePage({ params }: { params: Promise<{ slug: st
   if (!render) notFound();
   const day = render.plan?.days[0];
 
+  const listJsonLd =
+    render.kind === "LIST" && render.items
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: render.title,
+          numberOfItems: render.items.length,
+          itemListElement: render.items.slice(0, 100).map((it, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            name: it.foodName,
+          })),
+        }
+      : null;
+
   return (
     <main className="mx-auto max-w-5xl px-5 py-8">
+      {listJsonLd && <JsonLd data={listJsonLd} />}
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-4 dark:border-neutral-800">
         <div>
           <Link href="/" className="text-sm font-semibold tracking-tight">

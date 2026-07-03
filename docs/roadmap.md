@@ -48,6 +48,21 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F7 (optional) — SEO & link-preview hardening — GOO-30 — 2026-07-03
+**Changed:** app/robots.ts (allow public; disallow /api, /plans, /login, /signup; sitemap ref),
+app/sitemap.ts (public routes), app/opengraph-image.tsx (default brand OG card via next/og for every
+page without its own), root layout metadataBase + title template + default OpenGraph/Twitter, JsonLd
+component, WebSite+Organization+SoftwareApplication JSON-LD on the landing, honest ItemList JSON-LD on
+shared shopping-list pages (no fake Recipe markup). e2e/seo.spec.ts verifies robots/sitemap/OG-image +
+og/twitter meta + JSON-LD on the main public surfaces.
+**Tests run:** lint OK; typecheck 9/9; build OK (robots.txt, sitemap.xml, opengraph-image routes);
+Playwright 45 passed (30 + 15 SEO across chromium/iPhone-12/Pixel-5).
+**Remaining gaps:** share pages (/s/[slug]) stay out of the sitemap by design (unguessable); no
+per-plan Recipe schema (we have no recipe steps — omitting is the honest choice).
+**Migration notes:** set NEXT_PUBLIC_APP_URL so robots/sitemap/canonical emit the real origin.
+**Manual QA:** GET /robots.txt and /sitemap.xml; paste / and a /s/<slug> URL into a link-preview
+debugger.
+
 ### Prompt F6 (optional) — Launch post — GOO-29 — 2026-07-03
 **Changed:** docs/marketing/launch-posts.md — "Launching the Good Food App!" drafts per platform
 (LinkedIn long-form, X short + thread, Instagram caption + hashtags, generic short-form for
