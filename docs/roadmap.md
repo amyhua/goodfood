@@ -48,6 +48,14 @@ Every requested user-facing feature from the phase queue appears above and is tr
 
 <!-- Prepend each completed phase using the template below. -->
 
+### Prompt F6 (optional) — Launch post — GOO-29 — 2026-07-03
+**Changed:** docs/marketing/launch-posts.md — "Launching the Good Food App!" drafts per platform
+(LinkedIn long-form, X short + thread, Instagram caption + hashtags, generic short-form for
+Mastodon/Threads/Bluesky), image/thumbnail suggestions (use the generated OG card — no licensed-image
+risk), and a posting checklist. Honest claims only (proof-based, free, open source, missing≠0).
+**Tests run:** docs-only — lint/typecheck/test/build unaffected (green).
+**Manual QA:** fill [APP_URL]/[REPO_URL], verify link preview before posting.
+
 ### Prompt F5 (optional) — React Native iOS app (Expo MVP) — GOO-28 — 2026-07-03
 **Changed:** new `apps/mobile` Expo (React Native) project reusing the goodfood REST API — App.tsx
 navigation (auth gate → Home → Planner/Pantry/Shopping), src/api.ts (cookie-session client),
